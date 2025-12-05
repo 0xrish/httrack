@@ -284,6 +284,35 @@ class HTTrackScraper:
                 print(f"ERROR: {error_msg}")
             return None
     
+    def cleanup_before_zip(self, source_dir: str):
+        """Clean up unwanted files and directories before creating ZIP"""
+        try:
+            # Remove hts-cache directory if it exists in output_base (HTTrack cache)
+            hts_cache_path = os.path.join(self.output_base, 'hts-cache')
+            if os.path.exists(hts_cache_path):
+                shutil.rmtree(hts_cache_path)
+            
+            # Also check if hts-cache exists inside source_dir
+            hts_cache_in_source = os.path.join(source_dir, 'hts-cache')
+            if os.path.exists(hts_cache_in_source):
+                shutil.rmtree(hts_cache_in_source)
+            
+            # Remove HTTrack index files from the scraped directory
+            files_to_remove = [
+                'fade.gif',
+                'backblue.gif',
+                'index.html'
+            ]
+            
+            for file_name in files_to_remove:
+                file_path = os.path.join(source_dir, file_name)
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+            
+        except Exception as e:
+            # Log but don't fail if cleanup fails
+            pass
+    
     def create_zip(self, source_dir: str, zip_name: Optional[str] = None) -> Optional[str]:
         """Create ZIP archive of scraped content"""
         
@@ -295,7 +324,15 @@ class HTTrackScraper:
         try:
             with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
                 for root, dirs, files in os.walk(source_dir):
+                    # Skip hts-cache directory if it still exists
+                    if 'hts-cache' in dirs:
+                        dirs.remove('hts-cache')
+                    
                     for file in files:
+                        # Skip HTTrack index files
+                        if file in ['fade.gif', 'backblue.gif', 'index.html']:
+                            continue
+                        
                         file_path = os.path.join(root, file)
                         arcname = os.path.relpath(file_path, source_dir)
                         zipf.write(file_path, arcname)
@@ -367,6 +404,10 @@ async def main():
             return
         
         Actor.log.info(f"Scraping completed: {output_dir}")
+        
+        # Clean up unwanted files before creating ZIP
+        Actor.log.info("Cleaning up HTTrack cache and index files before creating ZIP...")
+        scraper.cleanup_before_zip(output_dir)
         
         # Create ZIP archive
         Actor.log.info("Creating ZIP archive...")
