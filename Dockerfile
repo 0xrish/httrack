@@ -42,8 +42,12 @@ RUN echo "Python version:" \
  && python --version \
  && echo "Pip version:" \
  && pip --version \
+ && echo "Upgrading pip and setuptools:" \
+ && pip install --upgrade pip setuptools wheel \
+ && echo "Upgrading pydantic first to avoid conflicts:" \
+ && pip install --upgrade "pydantic>=2.8.0,<3.0.0" \
  && echo "Installing dependencies:" \
- && pip install -r requirements.txt \
+ && pip install --upgrade -r requirements.txt \
  && echo "All installed Python packages:" \
  && pip freeze
 

@@ -1,3 +1,7 @@
+# Pin pydantic to version compatible with crawlee
+# Version 2.8+ should work better with crawlee
+pydantic >= 2.8.0, < 3.0.0
+
 # Apify SDK - required for Actor development
 # Use specific compatible versions
 apify >= 2.1.0, < 3.0.0

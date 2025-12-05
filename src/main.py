@@ -15,7 +15,6 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 
 from apify import Actor
-from apify.storages import KeyValueStore
 
 
 class HTTrackScraper:
@@ -244,9 +243,8 @@ async def main():
         with open(zip_path, 'rb') as f:
             zip_data = f.read()
         
-        # Store ZIP in key-value store
-        store = await KeyValueStore.open()
-        await store.set_value(zip_filename, zip_data, content_type='application/zip')
+        # Store ZIP in key-value store using Actor.set_value
+        await Actor.set_value(zip_filename, zip_data, content_type='application/zip')
         
         # Get public URL for the ZIP file
         # Try to get store ID from environment (set by Apify platform)
