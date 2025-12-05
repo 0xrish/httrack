@@ -3,7 +3,7 @@
   "fields": {},
   "views": {
     "overview": {
-      "title": "Scraping Results",
+      "title": "Scrap Any Website with Source Code",
       "transformation": {
         "fields": [
           "url",
