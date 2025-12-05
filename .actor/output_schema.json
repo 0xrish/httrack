@@ -5,8 +5,14 @@
     "zipFile": {
       "type": "string",
       "title": "ZIP Archive (Key-Value Store)",
-      "description": "Download the scraped website as a ZIP file from key-value store",
-      "template": "{{links.apiDefaultKeyValueStoreUrl}}/keys/{{zipFile}}"
+      "description": "Download the scraped website as a ZIP file. Check OUTPUT for direct download URL or browse keys below.",
+      "template": "{{links.apiDefaultKeyValueStoreUrl}}/keys"
+    },
+    "output": {
+      "type": "string",
+      "title": "Output (with ZIP URL)",
+      "description": "View output JSON containing ZIP filename and direct download URL",
+      "template": "{{links.apiDefaultKeyValueStoreUrl}}/records/OUTPUT"
     },
     "dataset": {
       "type": "string",

@@ -56,42 +56,6 @@ except ImportError:
         
         def __exit__(self, *args): 
             pass
-    # Mock Actor for local testing
-    class Actor:
-        class log:
-            @staticmethod
-            async def info(msg): 
-                print(f"INFO: {msg}")
-            
-            @staticmethod
-            async def warning(msg): 
-                print(f"WARNING: {msg}")
-            
-            @staticmethod
-            async def error(msg): 
-                print(f"ERROR: {msg}")
-        
-        @staticmethod
-        async def get_input(): 
-            return {}
-        
-        @staticmethod
-        async def fail(msg): 
-            raise Exception(msg)
-        
-        @staticmethod
-        async def set_value(key, value, **kwargs): 
-            pass
-        
-        @staticmethod
-        async def push_data(data): 
-            pass
-        
-        def __enter__(self): 
-            return self
-        
-        def __exit__(self, *args): 
-            pass
 
 import click
 
@@ -281,7 +245,10 @@ class HTTrackScraper:
                     return None
             
             if result.returncode == 0:
-                await log_func("Scraping completed successfully")
+                if logger:
+                    await logger.info("Scraping completed successfully")
+                else:
+                    print("INFO: Scraping completed successfully")
                 return output_dir
             else:
                 warn_msg = f"Scraping completed with warnings (exit code: {result.returncode})"
@@ -417,22 +384,22 @@ async def main():
         # Store ZIP in key-value store using Actor.set_value
         await Actor.set_value(zip_filename, zip_data, content_type='application/zip')
         
-        # Get public URL for the ZIP file
-        # Try to get store ID from environment (set by Apify platform)
-        store_id = os.environ.get('APIFY_DEFAULT_KEY_VALUE_STORE_ID')
-        
-        if store_id:
-            # Construct the public URL for the ZIP file
-            zip_url = f"https://api.apify.com/v2/key-value-stores/{store_id}/keys/{zip_filename}"
-        else:
-            # If store ID not available, log a warning
-            # The URL will be accessible via the output schema template
-            await Actor.log.warning("Store ID not available, URL will use output schema template")
-            zip_url = None
-        
         await Actor.log.info(f"ZIP saved to key-value store: {zip_filename}")
-        if zip_url:
+        
+        # Get public URL for the ZIP file using Apify SDK
+        try:
+            kv_store = await Actor.open_key_value_store()
+            zip_url = await kv_store.get_public_url(zip_filename)
             await Actor.log.info(f"Public ZIP URL: {zip_url}")
+        except Exception as e:
+            # Fallback: construct URL manually if SDK method fails
+            store_id = os.environ.get('APIFY_DEFAULT_KEY_VALUE_STORE_ID')
+            if store_id:
+                zip_url = f"https://api.apify.com/v2/key-value-stores/{store_id}/keys/{zip_filename}"
+                await Actor.log.info(f"Public ZIP URL (fallback): {zip_url}")
+            else:
+                await Actor.log.warning("Could not generate public URL. Use output schema template to access ZIP file.")
+                zip_url = None
         
         # Calculate statistics
         file_count = sum(len(files) for _, _, files in os.walk(output_dir))
@@ -443,14 +410,17 @@ async def main():
         )
         zip_size = os.path.getsize(zip_path)
         
-        # Store output with ZIP URL (if available)
+        # Store output with ZIP filename and direct download URL
+        # Users can access the ZIP file via:
+        # 1. Direct URL in OUTPUT.zipUrl (if available)
+        # 2. Key-value store keys endpoint (browse and download by filename)
         output_data = {
-            'zipFile': zip_filename,
-            'url': url,
+            'zipFile': zip_filename,  # ZIP filename for reference
+            'url': url,  # Original URL that was scraped
             'outputName': output_name or os.path.basename(output_dir),
         }
         if zip_url:
-            output_data['zipUrl'] = zip_url
+            output_data['zipUrl'] = zip_url  # Direct public download URL
         await Actor.set_value('OUTPUT', output_data)
         
         # Push results to dataset with ZIP URL
