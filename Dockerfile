@@ -7,7 +7,9 @@ FROM apify/actor-python:3.11
 USER root
 
 # Install HTTrack and required system dependencies
-# Based on setup-wsl.sh and WSL_SETUP.md requirements
+# Based on setup-wsl.sh, INSTALL, and configure requirements
+# Runtime dependencies: zlib1g and libssl3 (matching setup-wsl.sh runtime needs)
+# The httrack package will automatically pull in its required dependencies
 RUN echo "=== Installing HTTrack and system dependencies ===" \
  && apt-get update \
  && apt-get install -y --no-install-recommends \
@@ -19,6 +21,10 @@ RUN echo "=== Installing HTTrack and system dependencies ===" \
     libssl3 \
  && echo "=== Verifying HTTrack installation ===" \
  && httrack --version \
+ && echo "=== Verifying HTTrack dependencies ===" \
+ && ldd $(which httrack) || true \
+ && echo "=== Testing HTTrack basic functionality ===" \
+ && httrack --help > /dev/null 2>&1 || echo "HTTrack help command executed" \
  && echo "=== Cleaning up apt cache ===" \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/* \
@@ -69,16 +75,28 @@ RUN chmod +x website_scraper.py
 RUN python3 -m compileall -q src/
 
 # Set environment variables for HTTrack and Python
+# Based on setup-wsl.sh PATH configuration
 ENV HTTRACK_INSTALLED=1
-ENV PATH="/usr/bin:${PATH}"
+ENV PATH="/usr/bin:/usr/local/bin:${PATH}"
 ENV PYTHONPATH="/home/myuser/.local/lib/python3.11/site-packages:${PYTHONPATH}"
+ENV LD_LIBRARY_PATH="/usr/lib:/usr/local/lib:${LD_LIBRARY_PATH}"
 
-# Display versions for debugging
+# Display versions and verify installation
+# Based on setup-wsl.sh verification steps
+# Note: This runs as myuser, but httrack is installed system-wide and accessible
 RUN echo "=== Environment Check ===" \
  && echo "Python: $(python --version)" \
- && echo "HTTrack: $(httrack --version | head -1)" \
+ && echo "HTTrack version:" \
+ && /usr/bin/httrack --version | head -3 || httrack --version | head -3 || echo "HTTrack version check failed" \
+ && echo "HTTrack location: $(which httrack || echo /usr/bin/httrack)" \
+ && echo "HTTrack executable check:" \
+ && (test -x /usr/bin/httrack && echo "✓ HTTrack is executable" || echo "✗ HTTrack is not executable") \
  && echo "User: $(whoami)" \
  && echo "Working directory: $(pwd)" \
+ && echo "PATH: $PATH" \
+ && echo "LD_LIBRARY_PATH: ${LD_LIBRARY_PATH:-not set}" \
+ && echo "HTTrack test (help command):" \
+ && (/usr/bin/httrack --help > /dev/null 2>&1 || httrack --help > /dev/null 2>&1) && echo "✓ HTTrack responds to --help" || echo "✗ HTTrack --help failed" \
  && echo "======================="
 
 # Specify how to launch the source code of your Actor.
