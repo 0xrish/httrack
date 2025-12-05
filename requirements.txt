@@ -5,9 +5,9 @@ apify-client >= 1.7.0, < 2.0.0
 apify-shared >= 1.1.0, < 2.0.0
 
 # Pydantic - pin to version compatible with crawlee 0.6.12
-# Version 2.9.5 is known to work with crawlee 0.6.x
+# Version 2.9.x is known to work with crawlee 0.6.x
 # Avoid versions with known bugs: 2.10.0, 2.10.1, 2.10.2, and 2.12.x has compatibility issues
-pydantic == 2.9.5
+pydantic >= 2.9.0, < 2.10.0
 
 # CLI framework for local testing
 click >= 8.0.0

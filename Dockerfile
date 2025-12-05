@@ -48,9 +48,9 @@ RUN echo "Python version:" \
  && python --version \
  && echo "Pip version:" \
  && pip --version \
- && echo "Installing compatible pydantic version first (pydantic 2.9.5 works with crawlee 0.6.12):" \
- && pip install --user --force-reinstall --no-deps "pydantic==2.9.5" \
- && pip install --user "pydantic-core==2.23.0" "annotated-types>=0.6.0" \
+ && echo "Installing compatible pydantic version first (pydantic 2.9.0 works with crawlee 0.6.12):" \
+ && pip install --user --force-reinstall --no-deps "pydantic>=2.9.0,<2.10.0" \
+ && pip install --user "pydantic-core>=2.23.0,<2.24.0" "annotated-types>=0.6.0" \
  && echo "Installing dependencies:" \
  && pip install --user -r requirements.txt \
  && echo "Verifying pydantic version:" \
