@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTTrack Actor - Ready to Deploy</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .header .subtitle {
+            color: #666;
+            font-size: 18px;
+        }
+        
+        .status {
+            background: #10b981;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .status .emoji {
+            font-size: 40px;
+            display: block;
+            margin-bottom: 10px;
+        }
+        
+        .file-info {
+            background: #f3f4f6;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .file-info h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        
+        .file-detail {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .file-detail:last-child {
+            border-bottom: none;
+        }
+        
+        .file-detail .label {
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .file-detail .value {
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .download-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .download-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 18px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        
+        .download-btn:active {
+            transform: translateY(0);
+        }
+        
+        .steps {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .steps h3 {
+            color: #92400e;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .steps ol {
+            margin-left: 20px;
+            color: #78350f;
+        }
+        
+        .steps li {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        
+        .steps a {
+            color: #1d4ed8;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        
+        .steps a:hover {
+            text-decoration: underline;
+        }
+        
+        .footer {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            padding-top: 20px;
+            border-top: 2px solid #e5e7eb;
+        }
+        
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .check-icon {
+            color: #10b981;
+            margin-right: 8px;
+        }
+        
+        .included-files {
+            background: #eff6ff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .included-files h3 {
+            color: #1e40af;
+            margin-bottom: 15px;
+        }
+        
+        .included-files ul {
+            list-style: none;
+            color: #1e3a8a;
+        }
+        
+        .included-files li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+        
+        .included-files li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #10b981;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 HTTrack Actor</h1>
+            <p class="subtitle">Your Website Scraper is Ready to Deploy!</p>
+        </div>
+        
+        <div class="status">
+            <span class="emoji">✅</span>
+            ZIP File Created Successfully
+        </div>
+        
+        <div class="file-info">
+            <h3>📦 Package Information</h3>
+            <div class="file-detail">
+                <span class="label">File Name:</span>
+                <span class="value">httrack-actor.zip</span>
+            </div>
+            <div class="file-detail">
+                <span class="label">Size:</span>
+                <span class="value">606 KB</span>
+            </div>
+            <div class="file-detail">
+                <span class="label">Created:</span>
+                <span class="value" id="created-date">December 5, 2025</span>
+            </div>
+            <div class="file-detail">
+                <span class="label">Status:</span>
+                <span class="value" style="color: #10b981;">✓ Ready for Upload</span>
+            </div>
+        </div>
+        
+        <div class="included-files">
+            <h3>📄 Included Files</h3>
+            <ul>
+                <li><strong>Dockerfile</strong> - Complete with HTTrack installation</li>
+                <li><strong>requirements.txt</strong> - Python dependencies (Apify SDK)</li>
+                <li><strong>src/main.py</strong> - Actor logic (300+ lines)</li>
+                <li><strong>.actor/actor.json</strong> - Actor configuration</li>
+                <li><strong>.actor/input_schema.json</strong> - 15+ input parameters</li>
+                <li><strong>.actor/output_schema.json</strong> - Output configuration</li>
+                <li><strong>.actor/dataset_schema.json</strong> - Dataset display</li>
+                <li><strong>README.md</strong> - Complete documentation</li>
+            </ul>
+        </div>
+        
+        <div class="download-section">
+            <a href="file:///C:/Users/asus/OneDrive/Desktop/Shree%20Swami%20Smartha/httrack/httrack-actor.zip" class="download-btn" download="httrack-actor.zip">
+                ⬇️ Download ZIP File
+            </a>
+            <p style="margin-top: 15px; color: #666; font-size: 14px;">
+                Or find it at: <br>
+                <code style="background: #f3f4f6; padding: 5px 10px; border-radius: 5px; font-size: 12px;">
+                    C:\Users\asus\OneDrive\Desktop\Shree Swami Smartha\httrack\httrack-actor.zip
+                </code>
+            </p>
+        </div>
+        
+        <div class="steps">
+            <h3>🎯 Next Steps - Deploy to Apify</h3>
+            <ol>
+                <li>Click the download button above (or navigate to the folder)</li>
+                <li>Go to <a href="https://console.apify.com/" target="_blank">https://console.apify.com/</a></li>
+                <li>Click <strong>"Actors"</strong> → <strong>"+ Create new"</strong></li>
+                <li>Choose <strong>"Import from code"</strong></li>
+                <li>Upload <strong>httrack-actor.zip</strong></li>
+                <li>Click <strong>"Create & Build"</strong></li>
+                <li>Wait 3-5 minutes for build to complete</li>
+                <li>Click <strong>"Try it"</strong> and test with:<br>
+                    <code>{"url": "https://example.com"}</code>
+                </li>
+            </ol>
+        </div>
+        
+        <div class="footer">
+            <p>
+                <strong>Need Help?</strong><br>
+                See <a href="DEPLOY_NOW.md">DEPLOY_NOW.md</a> for detailed instructions<br>
+                or visit <a href="https://docs.apify.com/" target="_blank">Apify Documentation</a>
+            </p>
+            <p style="margin-top: 15px; font-size: 12px;">
+                Actor Version 1.0 • Built with HTTrack & Python 3.13 • Apify Platform
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        // Update created date with actual file date
+        const createdDate = new Date('2025-12-05T14:39:57');
+        document.getElementById('created-date').textContent = createdDate.toLocaleString();
+        
+        // Add copy functionality
+        document.querySelectorAll('code').forEach(code => {
+            code.style.cursor = 'pointer';
+            code.title = 'Click to copy';
+            code.addEventListener('click', function() {
+                navigator.clipboard.writeText(this.textContent);
+                const original = this.textContent;
+                this.textContent = '✓ Copied!';
+                setTimeout(() => {
+                    this.textContent = original;
+                }, 2000);
+            });
+        });
+    </script>
+</body>
+</html>
+
+

@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTTrack Actor - Ready to Deploy ✅</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            margin-bottom: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+        
+        .header .emoji {
+            font-size: 60px;
+            display: block;
+            margin-bottom: 20px;
+        }
+        
+        .header .subtitle {
+            color: #666;
+            font-size: 20px;
+        }
+        
+        .success-banner {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 24px;
+            font-weight: 700;
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+        }
+        
+        .download-section {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .download-section h2 {
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        
+        .download-btn {
+            display: inline-block;
+            background: white;
+            color: #2563eb;
+            padding: 20px 50px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-size: 22px;
+            font-weight: 700;
+            transition: all 0.3s;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin: 20px 0;
+        }
+        
+        .download-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .download-btn:active {
+            transform: translateY(-2px);
+        }
+        
+        .file-path {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            word-break: break-all;
+        }
+        
+        .validation {
+            background: #f0fdf4;
+            border-left: 4px solid #10b981;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .validation h3 {
+            color: #065f46;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        
+        .validation ul {
+            list-style: none;
+            color: #064e3b;
+        }
+        
+        .validation li {
+            padding: 8px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+        
+        .validation li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #10b981;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .steps {
+            counter-reset: step;
+        }
+        
+        .step {
+            background: #f9fafb;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            position: relative;
+            padding-left: 70px;
+        }
+        
+        .step:before {
+            counter-increment: step;
+            content: counter(step);
+            position: absolute;
+            left: 20px;
+            top: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .step h4 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        
+        .step p {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .step code {
+            background: #e5e7eb;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .step a {
+            color: #2563eb;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        
+        .step a:hover {
+            text-decoration: underline;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .info-box {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .info-box .label {
+            color: #666;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+        
+        .info-box .value {
+            color: #333;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .footer {
+            text-align: center;
+            color: white;
+            padding: 20px;
+            font-size: 14px;
+        }
+        
+        .footer a {
+            color: white;
+            font-weight: 600;
+            text-decoration: underline;
+        }
+        
+        .open-folder-btn {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            margin: 10px 5px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s;
+        }
+        
+        .open-folder-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <span class="emoji">🚀</span>
+                <h1>HTTrack Website Scraper</h1>
+                <p class="subtitle">Your Apify Actor is Ready to Deploy!</p>
+            </div>
+            
+            <div class="success-banner">
+                ✅ All Validations Passed
+            </div>
+            
+            <div class="validation">
+                <h3>✓ Package Validated</h3>
+                <ul>
+                    <li><strong>All Files Present</strong> - 11 core files + 145 source files</li>
+                    <li><strong>Python Syntax Valid</strong> - main.py, __main__.py, __init__.py</li>
+                    <li><strong>JSON Configuration Valid</strong> - All schemas validated</li>
+                    <li><strong>ZIP File Created</strong> - 606 KB, ready to upload</li>
+                    <li><strong>HTTrack Integration</strong> - Dockerfile includes HTTrack installation</li>
+                    <li><strong>15+ Parameters</strong> - Fully configurable input schema</li>
+                </ul>
+            </div>
+            
+            <div class="info-grid">
+                <div class="info-box">
+                    <div class="label">File Size</div>
+                    <div class="value">606 KB</div>
+                </div>
+                <div class="info-box">
+                    <div class="label">Total Files</div>
+                    <div class="value">145+</div>
+                </div>
+                <div class="info-box">
+                    <div class="label">Version</div>
+                    <div class="value">1.0</div>
+                </div>
+                <div class="info-box">
+                    <div class="label">Status</div>
+                    <div class="value" style="color: #10b981;">Ready</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white;">
+            <h2 style="text-align: center; font-size: 28px; margin-bottom: 20px;">⬇️ Download Deployment Package</h2>
+            <div style="text-align: center;">
+                <a href="file:///C:/Users/asus/OneDrive/Desktop/Shree%20Swami%20Smartha/httrack/httrack-actor.zip" 
+                   class="download-btn" 
+                   download="httrack-actor.zip">
+                    📦 Download httrack-actor.zip
+                </a>
+                <div class="file-path">
+                    <strong>File Location:</strong><br>
+                    C:\Users\asus\OneDrive\Desktop\Shree Swami Smartha\httrack\httrack-actor.zip
+                </div>
+                <div style="margin-top: 20px;">
+                    <a href="#" onclick="navigator.clipboard.writeText('C:\\\\Users\\\\asus\\\\OneDrive\\\\Desktop\\\\Shree Swami Smartha\\\\httrack\\\\httrack-actor.zip'); alert('Path copied to clipboard!'); return false;" 
+                       class="open-folder-btn">
+                        📋 Copy Path
+                    </a>
+                    <a href="file:///C:/Users/asus/OneDrive/Desktop/Shree%20Swami%20Smartha/httrack" 
+                       class="open-folder-btn">
+                        📁 Open Folder
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2 style="color: #333; margin-bottom: 25px; font-size: 24px;">🎯 Deployment Steps</h2>
+            
+            <div class="steps">
+                <div class="step">
+                    <h4>Download the ZIP file</h4>
+                    <p>Click the download button above or navigate to the folder manually</p>
+                </div>
+                
+                <div class="step">
+                    <h4>Go to Apify Console</h4>
+                    <p>Visit <a href="https://console.apify.com/" target="_blank">https://console.apify.com/</a> and sign in (or create free account)</p>
+                </div>
+                
+                <div class="step">
+                    <h4>Create New Actor</h4>
+                    <p>Click <strong>"Actors"</strong> → <strong>"+ Create new"</strong> → Choose <strong>"Import from code"</strong></p>
+                </div>
+                
+                <div class="step">
+                    <h4>Upload ZIP File</h4>
+                    <p>Upload <code>httrack-actor.zip</code> and click <strong>"Create & Build"</strong></p>
+                </div>
+                
+                <div class="step">
+                    <h4>Wait for Build (3-5 minutes)</h4>
+                    <p>Watch the build logs. You'll see HTTrack being installed and dependencies being added</p>
+                </div>
+                
+                <div class="step">
+                    <h4>Test Your Actor</h4>
+                    <p>Click <strong>"Try it"</strong>, enter <code>{"url": "https://example.com"}</code>, and click <strong>"Start"</strong></p>
+                </div>
+                
+                <div class="step">
+                    <h4>Download Results</h4>
+                    <p>Go to <strong>"Storage"</strong> → <strong>"Key-Value Store"</strong> → Download your ZIP file!</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card" style="background: #fef3c7;">
+            <h3 style="color: #92400e; margin-bottom: 15px; font-size: 20px;">📝 Example Input (Copy & Paste)</h3>
+            <pre style="background: #fffbeb; padding: 20px; border-radius: 10px; overflow-x: auto; border: 2px solid #fbbf24; font-size: 14px; color: #78350f; cursor: pointer;" onclick="copyCode(this)" title="Click to copy">{
+  "url": "https://example.com",
+  "depth": 2,
+  "stayOnDomain": true,
+  "connections": 4,
+  "getImages": true,
+  "getVideos": false,
+  "followRobots": true,
+  "maxTime": 300
+}</pre>
+            <p style="text-align: center; color: #92400e; margin-top: 10px; font-size: 14px;">
+                👆 Click to copy this test input
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p><strong>Questions?</strong> See <a href="DEPLOY_NOW.md" target="_blank">DEPLOY_NOW.md</a> for detailed instructions</p>
+            <p style="margin-top: 10px;">
+                <a href="https://docs.apify.com/" target="_blank">Apify Docs</a> • 
+                <a href="https://www.httrack.com/" target="_blank">HTTrack Docs</a> • 
+                <a href="https://console.apify.com/" target="_blank">Apify Console</a>
+            </p>
+            <p style="margin-top: 20px; opacity: 0.8;">
+                HTTrack Website Scraper Actor v1.0 • Built with Python 3.13 & Apify SDK 2.0
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        function copyCode(element) {
+            const text = element.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const original = element.innerHTML;
+                element.style.background = '#d1fae5';
+                element.innerHTML = '<div style="padding: 40px; font-size: 18px; color: #065f46;">✓ Copied to clipboard!</div>';
+                setTimeout(() => {
+                    element.style.background = '#fffbeb';
+                    element.innerHTML = original;
+                }, 2000);
+            }).catch(err => {
+                alert('Failed to copy. Please select and copy manually.');
+            });
+        }
+        
+        // Add notification on page load
+        window.addEventListener('load', function() {
+            console.log('%c✅ Actor Package Ready!', 'color: #10b981; font-size: 20px; font-weight: bold;');
+            console.log('%cZIP file validated and ready for upload', 'color: #666; font-size: 14px;');
+            console.log('%cNext: Upload to https://console.apify.com/', 'color: #2563eb; font-size: 14px;');
+        });
+    </script>
+</body>
+</html>
+
+

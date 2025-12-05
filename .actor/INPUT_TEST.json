@@ -1,0 +1,13 @@
+{
+  "url": "https://example.com",
+  "depth": 1,
+  "stayOnDomain": true,
+  "connections": 2,
+  "maxTime": 60,
+  "getImages": true,
+  "getVideos": false,
+  "followRobots": true,
+  "cleanup": true
+}
+
+
