@@ -42,8 +42,13 @@ RUN echo "Python version:" \
  && python --version \
  && echo "Pip version:" \
  && pip --version \
+ && echo "Upgrading pydantic to latest version to fix crawlee compatibility:" \
+ && pip install --user --upgrade --force-reinstall --no-deps "pydantic>=2.9.0" \
+ && pip install --user --upgrade "pydantic-core>=2.23.0" "annotated-types>=0.6.0" \
  && echo "Installing dependencies:" \
  && pip install --user -r requirements.txt \
+ && echo "Verifying pydantic version:" \
+ && python -c "import sys; sys.path.insert(0, '/home/myuser/.local/lib/python3.11/site-packages'); import pydantic; print(f'Pydantic version: {pydantic.__version__}')" \
  && echo "All installed Python packages:" \
  && pip freeze
 
@@ -63,9 +68,10 @@ RUN chmod +x website_scraper.py
 # Use compileall to ensure the runnability of the Actor Python code.
 RUN python3 -m compileall -q src/
 
-# Set environment variables for HTTrack
+# Set environment variables for HTTrack and Python
 ENV HTTRACK_INSTALLED=1
 ENV PATH="/usr/bin:${PATH}"
+ENV PYTHONPATH="/home/myuser/.local/lib/python3.11/site-packages:${PYTHONPATH}"
 
 # Display versions for debugging
 RUN echo "=== Environment Check ===" \

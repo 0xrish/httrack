@@ -56,6 +56,42 @@ except ImportError:
         
         def __exit__(self, *args): 
             pass
+    # Mock Actor for local testing
+    class Actor:
+        class log:
+            @staticmethod
+            async def info(msg): 
+                print(f"INFO: {msg}")
+            
+            @staticmethod
+            async def warning(msg): 
+                print(f"WARNING: {msg}")
+            
+            @staticmethod
+            async def error(msg): 
+                print(f"ERROR: {msg}")
+        
+        @staticmethod
+        async def get_input(): 
+            return {}
+        
+        @staticmethod
+        async def fail(msg): 
+            raise Exception(msg)
+        
+        @staticmethod
+        async def set_value(key, value, **kwargs): 
+            pass
+        
+        @staticmethod
+        async def push_data(data): 
+            pass
+        
+        def __enter__(self): 
+            return self
+        
+        def __exit__(self, *args): 
+            pass
 
 import click
 
