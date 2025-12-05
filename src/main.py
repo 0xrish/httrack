@@ -15,6 +15,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 
 from apify import Actor
+from apify.storages import KeyValueStore
 
 
 class HTTrackScraper:
@@ -238,13 +239,31 @@ async def main():
         
         await Actor.log.info(f"ZIP created: {zip_path}")
         
-        # Save ZIP to key-value store
+        # Save ZIP to key-value store and get public URL
         zip_filename = os.path.basename(zip_path)
         with open(zip_path, 'rb') as f:
             zip_data = f.read()
-            await Actor.set_value(zip_filename, zip_data, content_type='application/zip')
+        
+        # Store ZIP in key-value store
+        store = await KeyValueStore.open()
+        await store.set_value(zip_filename, zip_data, content_type='application/zip')
+        
+        # Get public URL for the ZIP file
+        # Try to get store ID from environment (set by Apify platform)
+        store_id = os.environ.get('APIFY_DEFAULT_KEY_VALUE_STORE_ID')
+        
+        if store_id:
+            # Construct the public URL for the ZIP file
+            zip_url = f"https://api.apify.com/v2/key-value-stores/{store_id}/keys/{zip_filename}"
+        else:
+            # If store ID not available, log a warning
+            # The URL will be accessible via the output schema template
+            await Actor.log.warning("Store ID not available, URL will use output schema template")
+            zip_url = None
         
         await Actor.log.info(f"ZIP saved to key-value store: {zip_filename}")
+        if zip_url:
+            await Actor.log.info(f"Public ZIP URL: {zip_url}")
         
         # Calculate statistics
         file_count = sum(len(files) for _, _, files in os.walk(output_dir))
@@ -255,8 +274,18 @@ async def main():
         )
         zip_size = os.path.getsize(zip_path)
         
-        # Push results to dataset
-        await Actor.push_data({
+        # Store output with ZIP URL (if available)
+        output_data = {
+            'zipFile': zip_filename,
+            'url': url,
+            'outputName': output_name or os.path.basename(output_dir),
+        }
+        if zip_url:
+            output_data['zipUrl'] = zip_url
+        await Actor.set_value('OUTPUT', output_data)
+        
+        # Push results to dataset with ZIP URL
+        dataset_record = {
             'url': url,
             'outputName': output_name or os.path.basename(output_dir),
             'zipFile': zip_filename,
@@ -267,7 +296,10 @@ async def main():
             'timestamp': datetime.now().isoformat(),
             'config': config,
             'status': 'success'
-        })
+        }
+        if zip_url:
+            dataset_record['zipUrl'] = zip_url
+        await Actor.push_data(dataset_record)
         
         # Cleanup if requested
         if cleanup:

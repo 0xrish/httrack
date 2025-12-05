@@ -9,6 +9,7 @@
           "url",
           "outputName",
           "zipFile",
+          "zipUrl",
           "fileCount",
           "totalSize",
           "zipSize",
@@ -31,6 +32,10 @@
           "zipFile": {
             "label": "ZIP File",
             "format": "text"
+          },
+          "zipUrl": {
+            "label": "ZIP Download URL",
+            "format": "link"
           },
           "fileCount": {
             "label": "Files Count",
@@ -66,6 +71,7 @@
           "url",
           "outputName",
           "zipFile",
+          "zipUrl",
           "fileCount",
           "totalSize",
           "zipSize",
@@ -89,6 +95,10 @@
           "zipFile": {
             "label": "ZIP File",
             "format": "text"
+          },
+          "zipUrl": {
+            "label": "ZIP Download URL",
+            "format": "link"
           },
           "fileCount": {
             "label": "Files Count",
