@@ -44,8 +44,9 @@ RUN echo "Python version:" \
  && pip --version \
  && echo "Upgrading pip and setuptools:" \
  && pip install --upgrade pip setuptools wheel \
- && echo "Upgrading pydantic first to avoid conflicts:" \
- && pip install --upgrade "pydantic>=2.8.0,<3.0.0" \
+ && echo "Installing compatible pydantic version first:" \
+ && pip uninstall -y pydantic || true \
+ && pip install --no-cache-dir "pydantic>=2.3.0,<2.4.0" \
  && echo "Installing dependencies:" \
  && pip install --upgrade -r requirements.txt \
  && echo "All installed Python packages:" \
