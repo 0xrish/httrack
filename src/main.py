@@ -183,7 +183,7 @@ class HTTrackScraper:
         if not self.validate_url(url):
             error_msg = f"Invalid URL format: {url}. Please provide a valid HTTP/HTTPS URL."
             if logger:
-                await logger.error(error_msg)
+                logger.error(error_msg)
             else:
                 print(f"ERROR: {error_msg}")
             return None
@@ -199,9 +199,9 @@ class HTTrackScraper:
         os.makedirs(output_dir, exist_ok=True)
         
         if logger:
-            await logger.info(f"Starting scrape: {url}")
-            await logger.info(f"Output directory: {output_dir}")
-            await logger.info(f"Configuration: {config}")
+            logger.info(f"Starting scrape: {url}")
+            logger.info(f"Output directory: {output_dir}")
+            logger.info(f"Configuration: {config}")
         else:
             print(f"INFO: Starting scrape: {url}")
             print(f"INFO: Output directory: {output_dir}")
@@ -211,7 +211,7 @@ class HTTrackScraper:
         cmd = self.build_httrack_command(url, output_dir, config)
         cmd_str = ' '.join(cmd)
         if logger:
-            await logger.info(f"Command: {cmd_str}")
+            logger.info(f"Command: {cmd_str}")
         else:
             print(f"INFO: Command: {cmd_str}")
         
@@ -233,7 +233,7 @@ class HTTrackScraper:
                 if "Unable to connect" in error_output or "Connection refused" in error_output:
                     error_msg = f"URL is not accessible: {url}. Please check the URL and network connection."
                     if logger:
-                        await logger.error(error_msg)
+                        logger.error(error_msg)
                     else:
                         print(f"ERROR: {error_msg}")
                     return None
@@ -241,27 +241,27 @@ class HTTrackScraper:
                 if "Name or service not known" in error_output or "Could not resolve host" in error_output:
                     error_msg = f"Domain not found: {url}. Please check the URL spelling."
                     if logger:
-                        await logger.error(error_msg)
+                        logger.error(error_msg)
                     else:
                         print(f"ERROR: {error_msg}")
                     return None
             
             if result.returncode == 0:
                 if logger:
-                    await logger.info("Scraping completed successfully")
+                    logger.info("Scraping completed successfully")
                 else:
                     print("INFO: Scraping completed successfully")
                 return output_dir
             else:
                 warn_msg = f"Scraping completed with warnings (exit code: {result.returncode})"
                 if logger:
-                    await logger.warning(warn_msg)
+                    logger.warning(warn_msg)
                 else:
                     print(f"WARNING: {warn_msg}")
                 if result.stderr:
                     error_preview = result.stderr[:500]
                     if logger:
-                        await logger.info(f"Errors: {error_preview}")
+                        logger.info(f"Errors: {error_preview}")
                     else:
                         print(f"INFO: Errors: {error_preview}")
                 # Still return output_dir if files were downloaded
@@ -272,14 +272,14 @@ class HTTrackScraper:
         except subprocess.TimeoutExpired:
             error_msg = f"Scraping timed out for {url}"
             if logger:
-                await logger.error(error_msg)
+                logger.error(error_msg)
             else:
                 print(f"ERROR: {error_msg}")
             return None
         except Exception as e:
             error_msg = f"Error during scraping: {e}"
             if logger:
-                await logger.error(error_msg)
+                logger.error(error_msg)
             else:
                 print(f"ERROR: {error_msg}")
             return None
@@ -347,7 +347,7 @@ async def main():
         output_name = actor_input.get('outputName')
         cleanup = actor_input.get('cleanup', True)
         
-        await Actor.log.info(f"Starting HTTrack scraper for: {url}")
+        Actor.log.info(f"Starting HTTrack scraper for: {url}")
         
         # Initialize scraper
         scraper = HTTrackScraper()
@@ -357,7 +357,7 @@ async def main():
             await Actor.fail('HTTrack is not installed in the container')
             return
         
-        await Actor.log.info("HTTrack is installed and ready")
+        Actor.log.info("HTTrack is installed and ready")
         
         # Scrape website (pass Actor.log as logger)
         output_dir = await scraper.scrape_website(url, config, output_name, logger=Actor.log)
@@ -366,17 +366,17 @@ async def main():
             await Actor.fail('Failed to scrape website')
             return
         
-        await Actor.log.info(f"Scraping completed: {output_dir}")
+        Actor.log.info(f"Scraping completed: {output_dir}")
         
         # Create ZIP archive
-        await Actor.log.info("Creating ZIP archive...")
+        Actor.log.info("Creating ZIP archive...")
         zip_path = scraper.create_zip(output_dir)
         
         if not zip_path:
             await Actor.fail('Failed to create ZIP archive')
             return
         
-        await Actor.log.info(f"ZIP created: {zip_path}")
+        Actor.log.info(f"ZIP created: {zip_path}")
         
         # Save ZIP to key-value store and get public URL
         zip_filename = os.path.basename(zip_path)
@@ -386,21 +386,21 @@ async def main():
         # Store ZIP in key-value store using Actor.set_value
         await Actor.set_value(zip_filename, zip_data, content_type='application/zip')
         
-        await Actor.log.info(f"ZIP saved to key-value store: {zip_filename}")
+        Actor.log.info(f"ZIP saved to key-value store: {zip_filename}")
         
         # Get public URL for the ZIP file using Apify SDK
         try:
             kv_store = await Actor.open_key_value_store()
             zip_url = await kv_store.get_public_url(zip_filename)
-            await Actor.log.info(f"Public ZIP URL: {zip_url}")
+            Actor.log.info(f"Public ZIP URL: {zip_url}")
         except Exception as e:
             # Fallback: construct URL manually if SDK method fails
             store_id = os.environ.get('APIFY_DEFAULT_KEY_VALUE_STORE_ID')
             if store_id:
                 zip_url = f"https://api.apify.com/v2/key-value-stores/{store_id}/keys/{zip_filename}"
-                await Actor.log.info(f"Public ZIP URL (fallback): {zip_url}")
+                Actor.log.info(f"Public ZIP URL (fallback): {zip_url}")
             else:
-                await Actor.log.warning("Could not generate public URL. Use output schema template to access ZIP file.")
+                Actor.log.warning("Could not generate public URL. Use output schema template to access ZIP file.")
                 zip_url = None
         
         # Calculate statistics
@@ -444,11 +444,11 @@ async def main():
         
         # Cleanup if requested
         if cleanup:
-            await Actor.log.info("Cleaning up source directory...")
+            Actor.log.info("Cleaning up source directory...")
             scraper.cleanup_directory(output_dir)
             os.remove(zip_path)  # Also remove local ZIP after saving to KVS
         
-        await Actor.log.info("✓ Scraping completed successfully!")
+        Actor.log.info("✓ Scraping completed successfully!")
 
 
 # Click CLI for local testing
