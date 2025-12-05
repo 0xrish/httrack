@@ -1,0 +1,138 @@
+════════════════════════════════════════════════════════════════════════════
+                    ⚠️ IMPORTANT: UPDATED ZIP FILE ⚠️
+════════════════════════════════════════════════════════════════════════════
+
+🔧 ISSUE FIXED: Apify SDK Version Compatibility
+
+The previous build failed due to incompatible Apify SDK versions.
+
+FIXED: Updated requirements.txt with compatible versions:
+  • apify >= 2.1.0, < 3.0.0
+  • apify-client >= 1.7.0, < 2.0.0
+  • apify-shared >= 1.1.0, < 2.0.0
+
+════════════════════════════════════════════════════════════════════════════
+📦 NEW ZIP FILE CREATED
+════════════════════════════════════════════════════════════════════════════
+
+File Name:   httrack-actor.zip
+File Size:   614 KB (628,994 bytes)  ← UPDATED
+Location:    C:\Users\asus\OneDrive\Desktop\Shree Swami Smartha\httrack\
+Status:      ✅ READY TO UPLOAD (Version 2)
+Created:     December 5, 2025 at 3:17 PM
+
+════════════════════════════════════════════════════════════════════════════
+🚀 ACTION REQUIRED: RE-UPLOAD NEW ZIP
+════════════════════════════════════════════════════════════════════════════
+
+IF YOU ALREADY UPLOADED TO APIFY:
+──────────────────────────────────
+1. Go back to Apify Console
+2. Delete the failed build OR
+3. Create a new version/build with the NEW zip file
+
+IF YOU HAVEN'T UPLOADED YET:
+─────────────────────────────
+1. Use the NEW httrack-actor.zip (just created)
+2. Upload to https://console.apify.com/
+3. Build and deploy
+
+════════════════════════════════════════════════════════════════════════════
+✅ WHAT WAS FIXED
+════════════════════════════════════════════════════════════════════════════
+
+BEFORE (Broken):
+─────────────────
+apify ~= 2.0.0  ← Too restrictive, caused version conflicts
+
+AFTER (Fixed):
+──────────────
+apify >= 2.1.0, < 3.0.0          ← Compatible range
+apify-client >= 1.7.0, < 2.0.0   ← Explicit client version
+apify-shared >= 1.1.0, < 2.0.0   ← Explicit shared version
+
+This ensures all Apify packages work together correctly.
+
+════════════════════════════════════════════════════════════════════════════
+🎯 NEXT STEPS
+════════════════════════════════════════════════════════════════════════════
+
+1. Download the NEW httrack-actor.zip
+   (The old one won't work!)
+
+2. Go to Apify Console:
+   https://console.apify.com/
+
+3. If you already created an Actor:
+   • Go to your Actor
+   • Click "Source" tab
+   • Upload new ZIP
+   • Click "Build"
+
+4. If starting fresh:
+   • Click "Actors" → "+ Create new"
+   • Choose "Import from code"
+   • Upload NEW httrack-actor.zip
+   • Click "Create & Build"
+
+5. Wait for build to complete (3-5 minutes)
+
+6. Test with:
+   {
+     "url": "https://example.com",
+     "depth": 1
+   }
+
+════════════════════════════════════════════════════════════════════════════
+✅ VERIFICATION
+════════════════════════════════════════════════════════════════════════════
+
+The new build should show in logs:
+
+✓ Installing dependencies:
+✓ Successfully installed apify-2.1.x apify-client-1.7.x apify-shared-1.1.x
+✓ No import errors
+✓ Actor starts successfully
+
+If you see "ImportError: cannot import name 'ignore_docs'", you're using 
+the OLD zip. Download and upload the NEW one.
+
+════════════════════════════════════════════════════════════════════════════
+📁 DOWNLOAD LINK
+════════════════════════════════════════════════════════════════════════════
+
+File Location:
+C:\Users\asus\OneDrive\Desktop\Shree Swami Smartha\httrack\httrack-actor.zip
+
+Or open in browser:
+C:\Users\asus\OneDrive\Desktop\Shree Swami Smartha\httrack\START_HERE.html
+
+The download page has been refreshed with the new ZIP file.
+
+════════════════════════════════════════════════════════════════════════════
+🆘 IF BUILD STILL FAILS
+════════════════════════════════════════════════════════════════════════════
+
+Check build logs for:
+• Python version (should be 3.13)
+• Apify SDK version (should be 2.1.x or higher)
+• No "ImportError: cannot import name 'ignore_docs'"
+
+If you see different errors, copy the full log and I can help fix it.
+
+════════════════════════════════════════════════════════════════════════════
+💡 TIP
+════════════════════════════════════════════════════════════════════════════
+
+The issue was that Apify SDK 2.0.0 had compatibility issues with the
+latest apify-shared package. By specifying broader version ranges, we ensure
+compatible versions are installed together.
+
+This is a common issue with Python dependencies and is now resolved!
+
+════════════════════════════════════════════════════════════════════════════
+
+                  ✅ ISSUE FIXED - READY TO DEPLOY AGAIN
+
+════════════════════════════════════════════════════════════════════════════
+

@@ -61,6 +61,15 @@ cover/
 *.mo
 *.pot
 
+*.zip
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.tar.lzma
+*.tar.lz
+*.tar.zst
+*.tar.zstd
+*.tar.zstd.gz
 # Django stuff:
 *.log
 local_settings.py
