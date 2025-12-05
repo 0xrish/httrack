@@ -1,9 +1,4 @@
-# Pin pydantic to version 2.3.x to avoid crawlee compatibility issues
-# This is a known workaround for the "default and default_factory" bug in crawlee
-pydantic >= 2.3.0, < 2.4.0
-
 # Apify SDK - required for Actor development
-# Use specific compatible versions
 apify >= 2.1.0, < 3.0.0
 apify-client >= 1.7.0, < 2.0.0
 apify-shared >= 1.1.0, < 2.0.0
