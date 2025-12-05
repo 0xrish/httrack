@@ -3,6 +3,9 @@ apify >= 2.1.0, < 3.0.0
 apify-client >= 1.7.0, < 2.0.0
 apify-shared >= 1.1.0, < 2.0.0
 
+# CLI framework for local testing
+click >= 8.0.0
+
 # HTTP requests and web scraping utilities (optional, for future use)
 requests >= 2.31.0
 beautifulsoup4 >= 4.12.0
