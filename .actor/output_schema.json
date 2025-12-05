@@ -2,11 +2,6 @@
   "actorOutputSchemaVersion": 1,
   "title": "HTTrack Website Scraper Output",
   "properties": {
-    "zipUrl": {
-      "type": "string",
-      "title": "ZIP Archive Download URL",
-      "description": "Direct public URL to download the scraped website as a ZIP file"
-    },
     "zipFile": {
       "type": "string",
       "title": "ZIP Archive (Key-Value Store)",
