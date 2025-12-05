@@ -1,0 +1,167 @@
+═══════════════════════════════════════════════════════════════════════════
+              QUICK DEPLOY GUIDE - HTTrack Actor to Apify
+═══════════════════════════════════════════════════════════════════════════
+
+⚠ APIFY CLI IS NOT INSTALLED
+
+You need to install Apify CLI first to deploy from command line.
+
+═══════════════════════════════════════════════════════════════════════════
+METHOD 1: Install Apify CLI (Recommended)
+═══════════════════════════════════════════════════════════════════════════
+
+1. Install Node.js (if not installed):
+   Download from: https://nodejs.org/
+   Choose: LTS version
+
+2. Install Apify CLI:
+   Open PowerShell as Administrator and run:
+   
+   npm install -g apify-cli
+
+3. Login to Apify:
+   
+   apify login
+
+4. Navigate to your project:
+   
+   cd "C:\Users\asus\OneDrive\Desktop\Shree Swami Smartha\httrack"
+
+5. Push to Apify:
+   
+   apify push
+
+═══════════════════════════════════════════════════════════════════════════
+METHOD 2: Manual Upload via Console (No CLI needed)
+═══════════════════════════════════════════════════════════════════════════
+
+1. Go to Apify Console:
+   https://console.apify.com/
+
+2. Login/Signup
+
+3. Click "Actors" → "+ Create new"
+
+4. Choose "Import Actor"
+
+5. Either:
+   a) Upload a ZIP of your project folder
+   b) Connect your GitHub repository
+
+6. Click "Build"
+
+7. Wait for build to complete
+
+8. Test your Actor!
+
+═══════════════════════════════════════════════════════════════════════════
+METHOD 3: Quick Upload ZIP
+═══════════════════════════════════════════════════════════════════════════
+
+1. Create a ZIP file containing ONLY these folders/files:
+   
+   httrack.zip
+   ├── Dockerfile
+   ├── requirements.txt
+   ├── README.md
+   ├── .dockerignore
+   ├── src/
+   │   ├── __init__.py
+   │   ├── __main__.py
+   │   └── main.py
+   └── .actor/
+       ├── actor.json
+       ├── input_schema.json
+       ├── output_schema.json
+       └── dataset_schema.json
+
+2. Go to: https://console.apify.com/actors
+
+3. Click "Create new"
+
+4. Upload ZIP
+
+5. Build and run!
+
+═══════════════════════════════════════════════════════════════════════════
+RECOMMENDED: Use Apify Console (No Installation Required)
+═══════════════════════════════════════════════════════════════════════════
+
+This is the easiest way if you don't want to install anything:
+
+1. Visit: https://console.apify.com/
+
+2. Create account (free tier available)
+
+3. Click "Actors" in left menu
+
+4. Click "+ Create new" button
+
+5. Choose "From template" or "Import"
+
+6. Upload your code or connect GitHub
+
+7. Configure and build
+
+8. Test with: {"url": "https://example.com"}
+
+═══════════════════════════════════════════════════════════════════════════
+FILES READY FOR DEPLOYMENT
+═══════════════════════════════════════════════════════════════════════════
+
+Location: C:\Users\asus\OneDrive\Desktop\Shree Swami Smartha\httrack
+
+✓ Dockerfile - Complete with HTTrack installation
+✓ requirements.txt - Python dependencies
+✓ src/main.py - Actor logic
+✓ .actor/actor.json - Actor configuration
+✓ .actor/input_schema.json - Input form (15+ parameters)
+✓ .actor/output_schema.json - Output schema
+✓ .actor/dataset_schema.json - Dataset display
+✓ README.md - Documentation
+
+═══════════════════════════════════════════════════════════════════════════
+WHAT HAPPENS AFTER DEPLOYMENT
+═══════════════════════════════════════════════════════════════════════════
+
+1. Actor will be available at:
+   https://console.apify.com/actors/YOUR_ACTOR_ID
+
+2. You can run it with:
+   - Web interface (Console)
+   - API calls
+   - Integrations
+   - Schedules
+
+3. Input example:
+   {
+     "url": "https://example.com",
+     "depth": 2,
+     "stayOnDomain": true
+   }
+
+4. Output:
+   - ZIP file in Key-Value Store
+   - Statistics in Dataset
+
+═══════════════════════════════════════════════════════════════════════════
+NEED HELP?
+═══════════════════════════════════════════════════════════════════════════
+
+Full guide: DEPLOY_INSTRUCTIONS.md
+Actor guide: ACTOR_GUIDE.md
+Documentation: README.md
+
+Apify Docs: https://docs.apify.com/
+Support: support@apify.com
+Discord: https://discord.gg/jyEM2PRvMU
+
+═══════════════════════════════════════════════════════════════════════════
+
+Your Actor is READY TO DEPLOY! 🚀
+
+Choose the method that works best for you.
+Most users find the Console (web interface) easiest for first deployment.
+
+═══════════════════════════════════════════════════════════════════════════
+
