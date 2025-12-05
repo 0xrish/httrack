@@ -1,8 +1,12 @@
 # Apify SDK - required for Actor development
-# Using specific version to avoid crawlee/pydantic compatibility bug
-apify == 2.1.0
+# Using compatible versions to avoid crawlee/pydantic compatibility issues
+apify >= 2.1.0, < 3.0.0
 apify-client >= 1.7.0, < 2.0.0
 apify-shared >= 1.1.0, < 2.0.0
+
+# Pydantic - ensure compatible version (crawlee requires specific pydantic versions)
+# Avoid versions with known bugs: 2.10.0, 2.10.1, 2.10.2
+pydantic >= 2.8.0, != 2.10.0, != 2.10.1, != 2.10.2
 
 # CLI framework for local testing
 click >= 8.0.0
