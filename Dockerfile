@@ -56,7 +56,7 @@ COPY --chown=myuser:myuser . ./
 RUN python3 -m compileall -q src/
 
 # Set environment variables
-ENV PATH="/usr/bin:${PATH}"
+ENV PATH="${PATH}:/usr/bin"
 
 # Display versions for debugging
 RUN echo "=== Environment Check ===" \

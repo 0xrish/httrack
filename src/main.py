@@ -25,12 +25,29 @@ class HTTrackScraper:
         default_dir = "/home/myuser/scraped_websites" if sys.platform != "win32" else os.path.abspath("./scraped_websites")
         self.output_base = os.environ.get("SCRAPED_WEBSITES_DIR", default_dir)
         Path(self.output_base).mkdir(parents=True, exist_ok=True)
+        self.httrack_bin = self._find_httrack()
+    
+    @staticmethod
+    def _find_httrack() -> str:
+        """Locate httrack binary in PATH or common Windows installation directories"""
+        bin_path = shutil.which("httrack")
+        if bin_path:
+            return bin_path
+        if sys.platform == "win32":
+            common_paths = [
+                r"C:\Program Files\WinHTTrack\httrack.exe",
+                r"C:\Program Files (x86)\WinHTTrack\httrack.exe",
+            ]
+            for path in common_paths:
+                if os.path.isfile(path):
+                    return path
+        return "httrack"
     
     def check_httrack(self) -> bool:
         """Check if scraper engine is installed"""
         try:
             result = subprocess.run(
-                ["httrack", "--version"],
+                [self.httrack_bin, "--version"],
                 capture_output=True,
                 text=True,
                 check=False
@@ -46,7 +63,7 @@ class HTTrackScraper:
         config: Dict[str, Any]
     ) -> list:
         """Build command with parameters"""
-        cmd = ["httrack", url, "-O", output_dir]
+        cmd = [self.httrack_bin, url, "-O", output_dir]
         
         # Mirror depth
         cmd.extend([f"-r{config.get('depth', 2)}"])

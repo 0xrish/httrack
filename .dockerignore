@@ -30,6 +30,7 @@ ENV/
 # Apify
 apify_storage/
 storage/
+scraped_websites/
 .actor/actor.log
 
 # Documentation
