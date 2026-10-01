@@ -1,5 +1,5 @@
 # Apify SDK - required for Actor development
-apify ~= 2.0.0
+apify >= 2.7.3
 
 # HTTP requests and web scraping utilities
 requests >= 2.31.0

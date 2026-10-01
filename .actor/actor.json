@@ -7,7 +7,7 @@
     "buildTag": "latest",
     "meta": {
         "templateId": "python-crawlee-beautifulsoup",
-        "generatedBy": "Claude Sonnet 4.5"
+        "generatedBy": "Gemini 3.8 Flash"
     },
     "input": "./input_schema.json",
     "output": "./output_schema.json",

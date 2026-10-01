@@ -1,7 +1,7 @@
 """
-HTTrack Website Scraper Actor - Main Module
+Website Scraper Actor - Main Module
 
-This Actor uses HTTrack to scrape websites and create ZIP archives.
+This Actor scrapes websites and creates ZIP archives.
 It reads configuration from Actor input and stores results in the default dataset.
 """
 
@@ -10,6 +10,7 @@ import sys
 import subprocess
 import zipfile
 import shutil
+import tempfile
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any, Optional
@@ -18,14 +19,15 @@ from apify import Actor
 
 
 class HTTrackScraper:
-    """HTTrack website scraper for Apify Actor"""
+    """Website scraper for Apify Actor"""
     
     def __init__(self):
-        self.output_base = "/home/myuser/scraped_websites"
+        default_dir = "/home/myuser/scraped_websites" if sys.platform != "win32" else os.path.abspath("./scraped_websites")
+        self.output_base = os.environ.get("SCRAPED_WEBSITES_DIR", default_dir)
         Path(self.output_base).mkdir(parents=True, exist_ok=True)
     
     def check_httrack(self) -> bool:
-        """Check if HTTrack is installed"""
+        """Check if scraper engine is installed"""
         try:
             result = subprocess.run(
                 ["httrack", "--version"],
@@ -43,7 +45,7 @@ class HTTrackScraper:
         output_dir: str,
         config: Dict[str, Any]
     ) -> list:
-        """Build HTTrack command with parameters"""
+        """Build command with parameters"""
         cmd = ["httrack", url, "-O", output_dir]
         
         # Mirror depth
@@ -85,11 +87,11 @@ class HTTrackScraper:
         else:
             cmd.extend(["-s0"])
         
-        # Additional options
-        cmd.extend(["-v"])   # Verbose
+        # Additional options: quiet mode and structure retention
+        cmd.extend(["-q"])   # Quiet mode
+        cmd.extend(["-Q"])   # Non-interactive
         cmd.extend(["-N0"])  # Save structure
         cmd.extend(["-K0"])  # Keep original links
-        cmd.extend(["-o"])   # Generate error files
         cmd.extend(["-%P"])  # Extended parsing
         
         return cmd
@@ -100,7 +102,7 @@ class HTTrackScraper:
         config: Dict[str, Any],
         output_name: Optional[str] = None
     ) -> Optional[str]:
-        """Scrape website using HTTrack"""
+        """Scrape website content"""
         
         # Create output directory name
         if not output_name:
@@ -112,16 +114,13 @@ class HTTrackScraper:
         output_dir = os.path.join(self.output_base, output_name)
         os.makedirs(output_dir, exist_ok=True)
         
-        await Actor.log.info(f"Starting scrape: {url}")
-        await Actor.log.info(f"Output directory: {output_dir}")
-        await Actor.log.info(f"Configuration: {config}")
+        Actor.log.info(f"Downloading website: {url}")
         
         # Build command
         cmd = self.build_httrack_command(url, output_dir, config)
-        await Actor.log.info(f"Command: {' '.join(cmd)}")
         
         try:
-            # Run HTTrack
+            # Run scraper process silently
             result = subprocess.run(
                 cmd,
                 capture_output=True,
@@ -130,18 +129,16 @@ class HTTrackScraper:
             )
             
             if result.returncode == 0:
-                await Actor.log.info("Scraping completed successfully")
+                Actor.log.info("Download completed successfully")
                 return output_dir
             else:
-                await Actor.log.warning(
-                    f"Scraping completed with warnings (exit code: {result.returncode})"
+                Actor.log.warning(
+                    f"Download completed with exit code: {result.returncode}"
                 )
-                if result.stderr:
-                    await Actor.log.warning(f"Errors: {result.stderr}")
                 return output_dir
                 
         except Exception as e:
-            await Actor.log.error(f"Error during scraping: {e}")
+            Actor.log.error(f"Error during download: {e}")
             return None
     
     def create_zip(self, source_dir: str, zip_name: Optional[str] = None) -> Optional[str]:
@@ -163,7 +160,7 @@ class HTTrackScraper:
             size_mb = os.path.getsize(zip_path) / (1024 * 1024)
             return zip_path
             
-        except Exception as e:
+        except Exception:
             return None
     
     def cleanup_directory(self, directory: str):
@@ -185,7 +182,7 @@ async def main():
         # Validate input
         url = actor_input.get('url')
         if not url:
-            await Actor.fail('Missing required input: url')
+            await Actor.fail(status_message='Missing required input: url')
             return
         
         # Get configuration with defaults
@@ -207,44 +204,42 @@ async def main():
         output_name = actor_input.get('outputName')
         cleanup = actor_input.get('cleanup', True)
         
-        await Actor.log.info(f"Starting HTTrack scraper for: {url}")
+        Actor.log.info(f"Starting scrape for: {url}")
         
         # Initialize scraper
         scraper = HTTrackScraper()
         
-        # Check HTTrack installation
+        # Check scraper engine
         if not scraper.check_httrack():
-            await Actor.fail('HTTrack is not installed in the container')
+            await Actor.fail(status_message='Scraper engine is not available')
             return
-        
-        await Actor.log.info("HTTrack is installed and ready")
         
         # Scrape website
         output_dir = await scraper.scrape_website(url, config, output_name)
         
         if not output_dir:
-            await Actor.fail('Failed to scrape website')
+            await Actor.fail(status_message='Failed to download website')
             return
         
-        await Actor.log.info(f"Scraping completed: {output_dir}")
+        Actor.log.info("Website content downloaded successfully")
         
         # Create ZIP archive
-        await Actor.log.info("Creating ZIP archive...")
+        Actor.log.info("Creating ZIP archive...")
         zip_path = scraper.create_zip(output_dir)
         
         if not zip_path:
-            await Actor.fail('Failed to create ZIP archive')
+            await Actor.fail(status_message='Failed to create ZIP archive')
             return
         
-        await Actor.log.info(f"ZIP created: {zip_path}")
+        zip_filename = os.path.basename(zip_path)
+        Actor.log.info(f"ZIP archive created: {zip_filename}")
         
         # Save ZIP to key-value store
-        zip_filename = os.path.basename(zip_path)
         with open(zip_path, 'rb') as f:
             zip_data = f.read()
             await Actor.set_value(zip_filename, zip_data, content_type='application/zip')
         
-        await Actor.log.info(f"ZIP saved to key-value store: {zip_filename}")
+        Actor.log.info(f"Archive saved to key-value store: {zip_filename}")
         
         # Calculate statistics
         file_count = sum(len(files) for _, _, files in os.walk(output_dir))
@@ -271,8 +266,10 @@ async def main():
         
         # Cleanup if requested
         if cleanup:
-            await Actor.log.info("Cleaning up source directory...")
             scraper.cleanup_directory(output_dir)
-            os.remove(zip_path)  # Also remove local ZIP after saving to KVS
+            try:
+                os.remove(zip_path)  # Also remove local ZIP after saving to KVS
+            except Exception:
+                pass
         
-        await Actor.log.info("✓ Scraping completed successfully!")
+        Actor.log.info("✓ Process completed successfully!")

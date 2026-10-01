@@ -52,29 +52,19 @@ RUN echo "Python version:" \
 # for most source file changes.
 COPY --chown=myuser:myuser . ./
 
-# Copy scraper script and documentation
-COPY --chown=myuser:myuser website_scraper.py ./
-COPY --chown=myuser:myuser README_SCRAPER.md ./
-COPY --chown=myuser:myuser SETUP_COMPLETE.txt ./
-
-# Make scraper script executable
-RUN chmod +x website_scraper.py
-
 # Use compileall to ensure the runnability of the Actor Python code.
 RUN python3 -m compileall -q src/
 
-# Set environment variables for HTTrack
-ENV HTTRACK_INSTALLED=1
+# Set environment variables
 ENV PATH="/usr/bin:${PATH}"
 
 # Display versions for debugging
 RUN echo "=== Environment Check ===" \
  && echo "Python: $(python --version)" \
- && echo "HTTrack: $(httrack --version | head -1)" \
  && echo "User: $(whoami)" \
  && echo "Working directory: $(pwd)" \
  && echo "======================="
 
 # Specify how to launch the source code of your Actor.
-# By default, the "python3 -m src" command is run
-CMD ["python3", "-m", "src"]
+# By default, the "python -m src" command is run
+CMD ["python", "-m", "src"]

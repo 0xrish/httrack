@@ -54,7 +54,6 @@ config.h.in
 aclocal.m4
 
 # Source directories not needed
-src/
 html/
 lang/
 templates/
