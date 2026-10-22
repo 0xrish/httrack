@@ -1,0 +1,9 @@
+name = "mikolabs-scraper-worker"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+ACTOR_ID = "mikolabs~web-extractor"
+CDN_URL = "https://cdn.mikolabs.xyz"
+# Put secrets like APIFY_TOKEN via: wrangler secret put APIFY_TOKEN
+# Or for local development, in .dev.vars
