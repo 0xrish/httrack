@@ -58,17 +58,20 @@ ACTOR_ID = "mikolabs~web-extractor"
 CDN_URL = "https://cdn.mikolabs.xyz"
 ```
 
-Set your sensitive Apify Token as a Cloudflare Worker secret:
+Set your secrets in Cloudflare Workers:
 ```bash
 cd cloudflare-worker
+
+# 1. Apify API Token (required)
 npx wrangler secret put APIFY_TOKEN
 # Paste your Apify API Token when prompted
-```
 
-*(Optional)* If you want to protect your worker from unauthorized access outside RapidAPI:
-```bash
+# 2. Bearer Authentication Token (to secure your worker)
+npx wrangler secret put AUTH_BEARER_TOKEN
+# Enter your custom secret token (e.g. my_secret_token_123)
+
+# 3. Optional: RapidAPI Proxy Secret (for RapidAPI integration)
 npx wrangler secret put RAPIDAPI_PROXY_SECRET
-# Enter your RapidAPI Proxy Secret
 ```
 
 ### 3. Deploy
@@ -92,6 +95,7 @@ npx wrangler deploy
 **Request Headers**:
 ```http
 Content-Type: application/json
+Authorization: Bearer <your_token>
 ```
 
 **Request Body**:

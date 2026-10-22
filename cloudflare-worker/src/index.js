@@ -42,6 +42,23 @@ export default {
       return new Response(null, { status: 204, headers: CORS_HEADERS });
     }
 
+    // Verify Bearer Authorization Header if configured
+    if (env.AUTH_BEARER_TOKEN && url.pathname !== '/health') {
+      const authHeader = request.headers.get('Authorization') || '';
+      const queryToken = url.searchParams.get('token');
+      const expectedBearer = `Bearer ${env.AUTH_BEARER_TOKEN}`;
+
+      const isAuthorized = authHeader === expectedBearer ||
+                           authHeader === env.AUTH_BEARER_TOKEN ||
+                           queryToken === env.AUTH_BEARER_TOKEN;
+
+      if (!isAuthorized) {
+        return jsonResponse({
+          error: 'Unauthorized: Missing or invalid Authorization header. Expected format: Authorization: Bearer <token>'
+        }, 401);
+      }
+    }
+
     // Verify RapidAPI Secret if configured
     if (env.RAPIDAPI_PROXY_SECRET) {
       const proxySecret = request.headers.get('X-RapidAPI-Proxy-Secret');
