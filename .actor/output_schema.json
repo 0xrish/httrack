@@ -4,15 +4,21 @@
   "properties": {
     "zipFile": {
       "type": "string",
-      "title": "ZIP Archive",
+      "title": "Download ZIP",
       "description": "Download the scraped website as a ZIP file",
-      "template": "{{links.apiDefaultKeyValueStoreUrl}}/keys/{{zipFile}}"
+      "template": "{{links.apiDefaultKeyValueStoreUrl}}/records/OUTPUT.zip"
     },
     "dataset": {
       "type": "string",
       "title": "Dataset",
       "description": "View scraping statistics and metadata",
       "template": "{{links.apiDefaultDatasetUrl}}/items"
+    },
+    "files": {
+      "type": "string",
+      "title": "Key-Value Store",
+      "description": "All files in Key-Value Store",
+      "template": "{{links.apiDefaultKeyValueStoreUrl}}/keys"
     }
   }
 }

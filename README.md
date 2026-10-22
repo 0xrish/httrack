@@ -50,12 +50,16 @@ Statistics and metadata for each scrape:
 ```json
 {
   "url": "https://example.com",
+  "zipUrl": "https://api.apify.com/v2/key-value-stores/{storeId}/records/example.com_20241205_130000.zip",
   "outputName": "example.com_20241205_130000",
   "zipFile": "example.com_20241205_130000.zip",
   "fileCount": 156,
   "totalSize": 5242880,
+  "totalSizeFormatted": "5.00 MB",
   "zipSize": 2621440,
+  "zipSizeFormatted": "2.50 MB",
   "compressionRatio": 50.0,
+  "durationSeconds": 12.45,
   "timestamp": "2024-12-05T13:00:00.000Z",
   "config": { ... },
   "status": "success"

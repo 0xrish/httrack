@@ -2,59 +2,20 @@
   "actorSpecification": 1,
   "fields": {},
   "views": {
-    "files": {
-      "title": "Scraped Pages & Files",
-      "transformation": {
-        "fields": [
-          "url",
-          "filePath",
-          "contentType",
-          "fileSize",
-          "content",
-          "timestamp"
-        ]
-      },
-      "display": {
-        "component": "table",
-        "properties": {
-          "url": {
-            "label": "Page URL",
-            "format": "link"
-          },
-          "filePath": {
-            "label": "File Path",
-            "format": "text"
-          },
-          "contentType": {
-            "label": "Content Type",
-            "format": "text"
-          },
-          "fileSize": {
-            "label": "Size (bytes)",
-            "format": "number"
-          },
-          "content": {
-            "label": "Content",
-            "format": "text"
-          },
-          "timestamp": {
-            "label": "Scraped At",
-            "format": "date"
-          }
-        }
-      }
-    },
     "overview": {
       "title": "Scraping Results",
       "transformation": {
         "fields": [
           "url",
+          "zipUrl",
+          "keyValueStoreUrl",
           "outputName",
           "zipFile",
           "fileCount",
-          "totalSize",
-          "zipSize",
+          "totalSizeFormatted",
+          "zipSizeFormatted",
           "compressionRatio",
+          "durationSeconds",
           "timestamp",
           "status"
         ]
@@ -64,6 +25,14 @@
         "properties": {
           "url": {
             "label": "Website URL",
+            "format": "link"
+          },
+          "zipUrl": {
+            "label": "Download ZIP",
+            "format": "link"
+          },
+          "keyValueStoreUrl": {
+            "label": "Key-Value Store",
             "format": "link"
           },
           "outputName": {
@@ -78,16 +47,20 @@
             "label": "Files Count",
             "format": "number"
           },
-          "totalSize": {
-            "label": "Total Size (bytes)",
-            "format": "number"
+          "totalSizeFormatted": {
+            "label": "Total Size",
+            "format": "text"
           },
-          "zipSize": {
-            "label": "ZIP Size (bytes)",
-            "format": "number"
+          "zipSizeFormatted": {
+            "label": "ZIP Size",
+            "format": "text"
           },
           "compressionRatio": {
             "label": "Compression %",
+            "format": "number"
+          },
+          "durationSeconds": {
+            "label": "Duration (s)",
             "format": "number"
           },
           "timestamp": {
@@ -106,12 +79,18 @@
       "transformation": {
         "fields": [
           "url",
+          "zipUrl",
+          "zipDirectUrl",
+          "keyValueStoreUrl",
           "outputName",
           "zipFile",
           "fileCount",
           "totalSize",
+          "totalSizeFormatted",
           "zipSize",
+          "zipSizeFormatted",
           "compressionRatio",
+          "durationSeconds",
           "timestamp",
           "config",
           "status"
@@ -122,6 +101,18 @@
         "properties": {
           "url": {
             "label": "Website URL",
+            "format": "link"
+          },
+          "zipUrl": {
+            "label": "Download ZIP",
+            "format": "link"
+          },
+          "zipDirectUrl": {
+            "label": "Direct Archive Link",
+            "format": "link"
+          },
+          "keyValueStoreUrl": {
+            "label": "Key-Value Store",
             "format": "link"
           },
           "outputName": {
@@ -140,12 +131,24 @@
             "label": "Total Size (bytes)",
             "format": "number"
           },
+          "totalSizeFormatted": {
+            "label": "Total Size",
+            "format": "text"
+          },
           "zipSize": {
             "label": "ZIP Size (bytes)",
             "format": "number"
           },
+          "zipSizeFormatted": {
+            "label": "ZIP Size",
+            "format": "text"
+          },
           "compressionRatio": {
             "label": "Compression %",
+            "format": "number"
+          },
+          "durationSeconds": {
+            "label": "Duration (s)",
             "format": "number"
           },
           "timestamp": {

@@ -229,8 +229,22 @@ class WebsiteScraper:
             pass
 
 
+def format_size(size_bytes: int) -> str:
+    """Format bytes into a human-readable string"""
+    if size_bytes < 1024:
+        return f"{size_bytes} B"
+    elif size_bytes < 1024 * 1024:
+        return f"{size_bytes / 1024:.2f} KB"
+    elif size_bytes < 1024 * 1024 * 1024:
+        return f"{size_bytes / (1024 * 1024):.2f} MB"
+    else:
+        return f"{size_bytes / (1024 * 1024 * 1024):.2f} GB"
+
+
 async def main():
     """Main Actor entry point"""
+    
+    start_time = datetime.now()
     
     async with Actor:
         # Get Actor input
@@ -294,12 +308,30 @@ async def main():
         zip_filename = os.path.basename(zip_path)
         Actor.log.info(f"ZIP archive created: {zip_filename}")
         
-        # Save ZIP to key-value store
+        # Save ZIP to key-value store under both custom filename and standard OUTPUT.zip
+        kvs = await Actor.open_key_value_store()
         with open(zip_path, 'rb') as f:
             zip_data = f.read()
-            await Actor.set_value(zip_filename, zip_data, content_type='application/zip')
+            await kvs.set_value(zip_filename, zip_data, content_type='application/zip')
+            await kvs.set_value('OUTPUT.zip', zip_data, content_type='application/zip')
         
-        Actor.log.info(f"Archive saved to key-value store: {zip_filename}")
+        Actor.log.info(f"Archive saved to key-value store as: {zip_filename} and OUTPUT.zip")
+        
+        # Determine public/API download URLs for the ZIP file and Key-Value Store
+        env = Actor.get_env()
+        store_id = getattr(env, 'default_key_value_store_id', None) or os.environ.get('APIFY_DEFAULT_KEY_VALUE_STORE_ID')
+        
+        if store_id and store_id != 'default':
+            zip_url = f"https://api.apify.com/v2/key-value-stores/{store_id}/records/{zip_filename}"
+            zip_direct_url = f"https://api.apify.com/v2/key-value-stores/{store_id}/records/OUTPUT.zip"
+            kvs_url = f"https://api.apify.com/v2/key-value-stores/{store_id}"
+        else:
+            try:
+                zip_url = await kvs.get_public_url(zip_filename)
+            except Exception:
+                zip_url = f"https://api.apify.com/v2/key-value-stores/default/records/{zip_filename}"
+            zip_direct_url = zip_url
+            kvs_url = "https://api.apify.com/v2/key-value-stores/default"
         
         # Calculate statistics
         file_count = sum(len(files) for _, _, files in os.walk(output_dir))
@@ -309,20 +341,29 @@ async def main():
             for file in files
         )
         zip_size = os.path.getsize(zip_path)
+        duration_seconds = round((datetime.now() - start_time).total_seconds(), 2)
         
-        # Push results to dataset
+        # Push results with zip url, key-value store url, and full details to dataset
         await Actor.push_data({
             'url': url,
+            'zipUrl': zip_url,
+            'zipDirectUrl': zip_direct_url,
+            'keyValueStoreUrl': kvs_url,
             'outputName': output_name or os.path.basename(output_dir),
             'zipFile': zip_filename,
             'fileCount': file_count,
             'totalSize': total_size,
+            'totalSizeFormatted': format_size(total_size),
             'zipSize': zip_size,
+            'zipSizeFormatted': format_size(zip_size),
             'compressionRatio': round((1 - zip_size / total_size) * 100, 2) if total_size > 0 else 0,
+            'durationSeconds': duration_seconds,
             'timestamp': datetime.now().isoformat(),
             'config': config,
             'status': 'success'
         })
+        
+        Actor.log.info(f"Results, ZIP URL, and Key-Value Store link passed to dataset: {zip_url}")
         
         # Cleanup if requested
         if cleanup:
