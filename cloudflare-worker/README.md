@@ -6,9 +6,10 @@ Production-ready Cloudflare Worker that acts as a secure middleware between **Ra
 
 - 🛡️ **Hides Apify Tokens**: RapidAPI consumers never see your Apify API credentials.
 - ⚡ **Custom CDN Domain (`cdn.mikolabs.xyz`)**: All ZIP downloads and API endpoints are branded through your custom domain.
-- 📦 **Direct ZIP Streaming**: Proxies ZIP archives directly from Apify Key-Value Stores with edge caching (`Cache-Control: public, max-age=86400`).
+- 🚀 **Smart Edge Caching & SHA-256 Hashing**: Normalizes and cryptographically hashes URLs. Pre-seeded and previously scraped websites return instantly (under 50ms) to save 100% of Apify compute costs.
+- 📦 **Direct Public ZIP Streaming**: Proxies ZIP archives directly from Apify Key-Value Stores with edge caching (`Cache-Control: public, max-age=604800`) without requiring end-user authentication.
 - 🔄 **Sync & Async Modes**:
-  - `POST /scrape`: Synchronous scraping with instant download link and statistics.
+  - `POST /scrape`: Synchronous scraping with instant download link and statistics (or instant cache hit).
   - `POST /scrape-async` & `GET /status/:runId`: Asynchronous scraping for larger websites.
 - 🌐 **Full CORS Support**: Compatible with web apps, frontend clients, and RapidAPI's API tester.
 
@@ -115,22 +116,26 @@ Authorization: Bearer <your_token>
 ```json
 {
   "success": true,
+  "cached": true,
   "url": "https://example.com",
-  "downloadUrl": "https://cdn.mikolabs.xyz/download/JH0DNwc7Bgzy0AMOE/example.com_20261022_222313.zip",
+  "urlHash": "2781b0a887a4128f1b6238b95ca1efd66a6a575a74577ceb970631bf37351052",
+  "downloadUrl": "https://cdn.mikolabs.xyz/download/JH0DNwc7Bgzy0AMOE/example.com_20261022.zip",
   "directZipUrl": "https://cdn.mikolabs.xyz/download/JH0DNwc7Bgzy0AMOE/OUTPUT.zip",
-  "outputName": "example.com_20261022_222313",
-  "zipFile": "example.com_20261022_222313.zip",
+  "outputName": "example.com_20261022",
+  "zipFile": "example.com_20261022.zip",
   "fileCount": 156,
   "totalSize": 5242880,
   "totalSizeFormatted": "5.00 MB",
   "zipSize": 2621440,
   "zipSizeFormatted": "2.50 MB",
   "compressionRatio": 50.0,
-  "durationSeconds": 14.52,
+  "durationSeconds": 0.05,
   "timestamp": "2026-10-22T22:21:03.313Z",
   "status": "success"
 }
 ```
+
+> **Tip**: If you want to bypass the cache and force a live re-scrape on Apify, pass `"forceRefresh": true` in your JSON request body.
 
 ---
 

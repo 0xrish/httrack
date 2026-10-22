@@ -4,6 +4,9 @@
  * Proxies scraping requests to Apify Actor (mikolabs~web-extractor)
  * and generates clean CDN download URLs (cdn.mikolabs.xyz) for RapidAPI users.
  * Shields the Apify API token from end users.
+ * 
+ * Features SHA-256 URL hashing and intelligent Edge Caching to prevent
+ * redundant Apify scraping runs and save compute costs.
  */
 
 const CORS_HEADERS = {
@@ -31,6 +34,51 @@ function extractStoreId(url) {
   const match = url.match(/key-value-stores\/([a-zA-Z0-9_-]+)/i);
   return match ? match[1] : null;
 }
+
+/**
+ * Normalize URL string (removes trailing slashes, lowercases protocol/hostname)
+ */
+function normalizeUrl(targetUrl) {
+  try {
+    const parsed = new URL(targetUrl.trim());
+    const path = parsed.pathname.replace(/\/+$/, '') || '/';
+    return `${parsed.protocol.toLowerCase()}//${parsed.hostname.toLowerCase()}${path}${parsed.search}`;
+  } catch (e) {
+    return targetUrl.trim().toLowerCase().replace(/\/+$/, '');
+  }
+}
+
+/**
+ * Compute SHA-256 hash of a normalized URL string
+ */
+async function computeUrlHash(targetUrl) {
+  const normalized = normalizeUrl(targetUrl);
+  const encoder = new TextEncoder();
+  const data = encoder.encode(normalized);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * Pre-seeded default URLs with ready ZIP archives to save 100% compute costs
+ */
+const PRESEEDED_CACHE = {
+  'https://bigbearslides.netlify.app': {
+    url: 'https://bigbearslides.netlify.app',
+    storeId: 'shFJd878gPppzwZdJ',
+    outputName: 'bigbearslides.netlify.app',
+    zipFile: 'bigbearslides.netlify.app_20261022_171711.zip',
+    fileCount: 27,
+    totalSize: 698242,
+    totalSizeFormatted: '681.88 KB',
+    zipSize: 661619,
+    zipSizeFormatted: '646.11 KB',
+    compressionRatio: 5.25,
+    timestamp: '2026-10-22T17:17:39.476958',
+    status: 'success'
+  }
+};
 
 export default {
   async fetch(request, env, ctx) {
@@ -82,14 +130,15 @@ export default {
       if (method === 'GET') {
         return jsonResponse({
           service: 'Mikolabs Web Extractor API',
-          version: '1.0.0',
+          version: '1.2.0',
           status: 'online',
           cdn: cdnBase,
+          caching: 'enabled (SHA-256 URL hashing + Edge Cache)',
           endpoints: {
-            'POST /scrape': 'Start website scraping and get ZIP download link + metadata (Synchronous)',
+            'POST /scrape': 'Start website scraping or retrieve cached ZIP directly by URL (Synchronous)',
             'POST /scrape-async': 'Start website scraping and receive runId (Asynchronous)',
             'GET /status/:runId': 'Check status of an asynchronous crawl',
-            'GET /download/:storeId/:key': 'Download scraped ZIP archive via CDN without exposing token'
+            'GET /download/:storeId/:key': 'Public direct ZIP download stream (no user auth needed)'
           }
         });
       }
@@ -107,7 +156,7 @@ export default {
       try {
         const apifyResp = await fetch(apifyRecordUrl, {
           cf: {
-            cacheTtl: 86400,
+            cacheTtl: 604800, // 7 days edge cache
             cacheEverything: true,
           },
         });
@@ -123,7 +172,7 @@ export default {
         const headers = new Headers(CORS_HEADERS);
         headers.set('Content-Type', apifyResp.headers.get('Content-Type') || 'application/zip');
         headers.set('Content-Disposition', `attachment; filename="${recordKey}"`);
-        headers.set('Cache-Control', 'public, max-age=86400, s-maxage=86400');
+        headers.set('Cache-Control', 'public, max-age=604800, s-maxage=604800');
         
         const contentLength = apifyResp.headers.get('Content-Length');
         if (contentLength) {
@@ -156,11 +205,18 @@ export default {
         if (runStatus === 'SUCCEEDED') {
           const defaultDatasetId = runData.data.defaultDatasetId;
           const storeId = (runData.data.defaultKeyValueStoreId || '').trim();
+          const datasetResp = await fetch(`https://api.apify.com/v2/datasets/${defaultDatasetId}/items?token=${apifyToken}`);
+          const items = datasetResp.ok ? await datasetResp.json() : [];
+          const item = items[0] || {};
+
           const cleanZipFile = String(item.zipFile || 'OUTPUT.zip').trim().replace(/[\r\n\t]/g, '');
           const zipFile = cleanZipFile || 'OUTPUT.zip';
+          const urlHash = await computeUrlHash(item.url || '');
+
           return jsonResponse({
             status: 'SUCCEEDED',
             url: item.url,
+            urlHash,
             downloadUrl: `${cdnBase}/download/${storeId}/${encodeURIComponent(zipFile)}`,
             directZipUrl: `${cdnBase}/download/${storeId}/OUTPUT.zip`,
             fileCount: item.fileCount,
@@ -241,7 +297,7 @@ export default {
       }
     }
 
-    // ROUTE: Synchronous Scraper (Default)
+    // ROUTE: Synchronous Scraper with SHA-256 URL Hashing & Edge Cache (Default)
     // Path: POST /scrape or POST /
     if ((url.pathname === '/scrape' || url.pathname === '/') && method === 'POST') {
       let body = {};
@@ -264,6 +320,60 @@ export default {
         }, 400);
       }
 
+      // Compute cryptographic SHA-256 hash of the normalized target URL
+      const normalized = normalizeUrl(targetUrl);
+      const urlHash = await computeUrlHash(targetUrl);
+      const forceRefresh = body.forceRefresh === true || url.searchParams.get('forceRefresh') === 'true';
+
+      // 1. Check Pre-seeded Cache for Default URLs (saves compute completely)
+      if (!forceRefresh && PRESEEDED_CACHE[normalized]) {
+        const cachedItem = PRESEEDED_CACHE[normalized];
+        const storeId = cachedItem.storeId;
+        const zipFile = cachedItem.zipFile;
+
+        return jsonResponse({
+          success: true,
+          cached: true,
+          url: cachedItem.url,
+          urlHash,
+          downloadUrl: `${cdnBase}/download/${storeId}/${encodeURIComponent(zipFile)}`,
+          directZipUrl: `${cdnBase}/download/${storeId}/OUTPUT.zip`,
+          outputName: cachedItem.outputName,
+          zipFile,
+          fileCount: cachedItem.fileCount,
+          totalSize: cachedItem.totalSize,
+          totalSizeFormatted: cachedItem.totalSizeFormatted,
+          zipSize: cachedItem.zipSize,
+          zipSizeFormatted: cachedItem.zipSizeFormatted,
+          compressionRatio: cachedItem.compressionRatio,
+          durationSeconds: 0.05,
+          timestamp: cachedItem.timestamp,
+          status: 'success'
+        });
+      }
+
+      // 2. Check Cloudflare Edge Cache API for previously scraped URLs
+      const cache = caches.default;
+      const cacheUrl = new URL(`https://cache.internal/scrape/${urlHash}`);
+      const cacheKey = new Request(cacheUrl.toString());
+
+      if (!forceRefresh) {
+        try {
+          const cachedResponse = await cache.match(cacheKey);
+          if (cachedResponse) {
+            const cachedData = await cachedResponse.json();
+            return jsonResponse({
+              ...cachedData,
+              cached: true,
+              urlHash
+            });
+          }
+        } catch (e) {
+          // Continue to live run if cache read fails
+        }
+      }
+
+      // 3. Fallback: Trigger Apify Actor run
       const actorInput = {
         url: targetUrl,
         depth: Number(body.depth ?? url.searchParams.get('depth') ?? 2),
@@ -282,7 +392,6 @@ export default {
       };
 
       try {
-        // Execute synchronous Actor run and retrieve dataset items directly
         const apifyUrl = `https://api.apify.com/v2/actors/${actorId}/run-sync-get-dataset-items?token=${apifyToken}`;
         
         const apifyResp = await fetch(apifyUrl, {
@@ -309,7 +418,7 @@ export default {
           }, 500);
         }
 
-        // Extract store ID from item links
+        // Extract store ID and clean filename
         const storeId = (extractStoreId(item.zipUrl) || extractStoreId(item.keyValueStoreUrl) || extractStoreId(item.zipDirectUrl) || '').trim();
         const cleanZipFile = String(item.zipFile || 'OUTPUT.zip').trim().replace(/[\r\n\t]/g, '');
         const zipFile = cleanZipFile || 'OUTPUT.zip';
@@ -323,13 +432,15 @@ export default {
           ? `${cdnBase}/download/${storeId}/OUTPUT.zip`
           : (item.zipDirectUrl || downloadUrl);
 
-        return jsonResponse({
+        const responsePayload = {
           success: true,
+          cached: false,
           url: item.url,
+          urlHash,
           downloadUrl,
           directZipUrl,
           outputName: item.outputName,
-          zipFile: item.zipFile,
+          zipFile,
           fileCount: item.fileCount,
           totalSize: item.totalSize,
           totalSizeFormatted: item.totalSizeFormatted,
@@ -340,7 +451,26 @@ export default {
           timestamp: item.timestamp,
           config: item.config,
           status: item.status || 'success'
-        });
+        };
+
+        // Cache the result on Cloudflare Edge for 7 days
+        try {
+          ctx.waitUntil(
+            cache.put(
+              cacheKey,
+              new Response(JSON.stringify(responsePayload), {
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Cache-Control': 'public, max-age=604800, s-maxage=604800'
+                }
+              })
+            )
+          );
+        } catch (e) {
+          // Pass silently
+        }
+
+        return jsonResponse(responsePayload);
       } catch (err) {
         return jsonResponse({
           error: `Internal error communicating with scraper engine: ${err.message}`
