@@ -61,24 +61,32 @@ async function computeUrlHash(targetUrl) {
 }
 
 /**
- * Pre-seeded default URLs with ready ZIP archives to save 100% compute costs
+ * Default URL and pre-stored OUTPUT.zip archive metadata.
+ * Saves 100% compute costs on repeated or default requests.
  */
-const PRESEEDED_CACHE = {
-  'https://bigbearslides.netlify.app': {
-    url: 'https://bigbearslides.netlify.app',
-    storeId: 'shFJd878gPppzwZdJ',
-    outputName: 'bigbearslides.netlify.app',
-    zipFile: 'bigbearslides.netlify.app_20261022_171711.zip',
-    fileCount: 27,
-    totalSize: 698242,
-    totalSizeFormatted: '681.88 KB',
-    zipSize: 661619,
-    zipSizeFormatted: '646.11 KB',
-    compressionRatio: 5.25,
-    timestamp: '2026-10-22T17:17:39.476958',
-    status: 'success'
-  }
+const DEFAULT_URL = 'https://bigbearslides.netlify.app';
+const DEFAULT_STORE_ID = 'shFJd878gPppzwZdJ';
+
+const DEFAULT_RESULT = {
+  url: DEFAULT_URL,
+  outputName: 'bigbearslides.netlify.app',
+  zipFile: 'OUTPUT.zip',
+  fileCount: 27,
+  totalSize: 698242,
+  totalSizeFormatted: '681.88 KB',
+  zipSize: 661619,
+  zipSizeFormatted: '646.11 KB',
+  compressionRatio: 5.25,
+  timestamp: '2026-10-22T17:17:39.476958',
+  status: 'success'
 };
+
+function isDefaultRequest(targetUrl) {
+  if (!targetUrl) return true;
+  const trimmed = String(targetUrl).trim().toLowerCase();
+  if (trimmed === '' || trimmed === 'default') return true;
+  return normalizeUrl(trimmed) === normalizeUrl(DEFAULT_URL);
+}
 
 export default {
   async fetch(request, env, ctx) {
@@ -110,8 +118,8 @@ export default {
       }
     }
 
-    // Verify RapidAPI Secret if configured
-    if (env.RAPIDAPI_PROXY_SECRET) {
+    // Verify RapidAPI Secret if configured (only on scrape actions, not on public file downloads)
+    if (env.RAPIDAPI_PROXY_SECRET && isScrapeAction) {
       const proxySecret = request.headers.get('X-RapidAPI-Proxy-Secret');
       if (proxySecret !== env.RAPIDAPI_PROXY_SECRET) {
         return jsonResponse({ error: 'Unauthorized request: Invalid RapidAPI proxy secret' }, 401);
@@ -145,13 +153,27 @@ export default {
     }
 
     // ROUTE: Direct CDN ZIP Download proxy
-    // Path: /download/:storeId/:key (or /download/:storeId/OUTPUT.zip)
-    const downloadMatch = url.pathname.match(/^\/download\/([a-zA-Z0-9_-]+)\/(.+)$/);
-    if (downloadMatch && method === 'GET') {
-      const storeId = downloadMatch[1].trim();
-      const recordKey = decodeURIComponent(downloadMatch[2]).trim().replace(/[\r\n\t]/g, '');
+    // Handles:
+    // - /download/:storeId/:key
+    // - /download/OUTPUT.zip
+    // - /download/default/OUTPUT.zip
+    // - /OUTPUT.zip
+    let downloadStoreId = null;
+    let downloadRecordKey = null;
 
-      const apifyRecordUrl = `https://api.apify.com/v2/key-value-stores/${storeId}/records/${encodeURIComponent(recordKey)}?token=${apifyToken}`;
+    const isDownloadMethod = method === 'GET' || method === 'HEAD';
+    const downloadMatch = url.pathname.match(/^\/download\/([a-zA-Z0-9_-]+)\/(.+)$/);
+    if (downloadMatch && isDownloadMethod) {
+      const paramStore = downloadMatch[1].trim();
+      downloadStoreId = (paramStore === 'default') ? (env.DEFAULT_STORE_ID || DEFAULT_STORE_ID) : paramStore;
+      downloadRecordKey = decodeURIComponent(downloadMatch[2]).trim().replace(/[\r\n\t]/g, '');
+    } else if ((url.pathname === '/download/OUTPUT.zip' || url.pathname === '/OUTPUT.zip') && isDownloadMethod) {
+      downloadStoreId = env.DEFAULT_STORE_ID || DEFAULT_STORE_ID;
+      downloadRecordKey = 'OUTPUT.zip';
+    }
+
+    if (downloadStoreId && downloadRecordKey && isDownloadMethod) {
+      const apifyRecordUrl = `https://api.apify.com/v2/key-value-stores/${downloadStoreId}/records/${encodeURIComponent(downloadRecordKey)}?token=${apifyToken}`;
 
       try {
         const apifyResp = await fetch(apifyRecordUrl, {
@@ -164,14 +186,14 @@ export default {
         if (!apifyResp.ok) {
           return jsonResponse({
             error: `File not found or expired in storage (Status ${apifyResp.status})`,
-            storeId,
-            key: recordKey
+            storeId: downloadStoreId,
+            key: downloadRecordKey
           }, apifyResp.status);
         }
 
         const headers = new Headers(CORS_HEADERS);
         headers.set('Content-Type', apifyResp.headers.get('Content-Type') || 'application/zip');
-        headers.set('Content-Disposition', `attachment; filename="${recordKey}"`);
+        headers.set('Content-Disposition', `attachment; filename="${downloadRecordKey}"`);
         headers.set('Cache-Control', 'public, max-age=604800, s-maxage=604800');
         
         const contentLength = apifyResp.headers.get('Content-Length');
@@ -248,7 +270,33 @@ export default {
         body = {};
       }
 
-      const targetUrl = body.url || url.searchParams.get('url');
+      const rawUrl = body.url || url.searchParams.get('url');
+      const forceRefresh = body.forceRefresh === true || url.searchParams.get('forceRefresh') === 'true';
+
+      // If default request and not forced to refresh, return immediate result pointing to OUTPUT.zip
+      if (!forceRefresh && isDefaultRequest(rawUrl)) {
+        const storeId = env.DEFAULT_STORE_ID || DEFAULT_STORE_ID;
+        const urlHash = await computeUrlHash(DEFAULT_URL);
+        return jsonResponse({
+          success: true,
+          cached: true,
+          isDefault: true,
+          message: 'Default website archive already prepared',
+          status: 'SUCCEEDED',
+          url: DEFAULT_URL,
+          urlHash,
+          downloadUrl: `${cdnBase}/download/${storeId}/OUTPUT.zip`,
+          directZipUrl: `${cdnBase}/download/${storeId}/OUTPUT.zip`,
+          zipFile: 'OUTPUT.zip',
+          details: {
+            ...DEFAULT_RESULT,
+            downloadUrl: `${cdnBase}/download/${storeId}/OUTPUT.zip`,
+            directZipUrl: `${cdnBase}/download/${storeId}/OUTPUT.zip`
+          }
+        }, 200);
+      }
+
+      const targetUrl = (rawUrl || '').trim();
       if (!targetUrl) {
         return jsonResponse({ error: "Missing required 'url' field" }, 400);
       }
@@ -307,7 +355,37 @@ export default {
         body = {};
       }
 
-      const targetUrl = body.url || url.searchParams.get('url');
+      const rawUrl = body.url || url.searchParams.get('url');
+      const forceRefresh = body.forceRefresh === true || url.searchParams.get('forceRefresh') === 'true';
+      const defaultStoreId = env.DEFAULT_STORE_ID || DEFAULT_STORE_ID;
+
+      // 1. DEFAULT REQUEST: Return OUTPUT.zip directly without sending any request to Apify
+      if (!forceRefresh && isDefaultRequest(rawUrl)) {
+        const urlHash = await computeUrlHash(DEFAULT_URL);
+        return jsonResponse({
+          success: true,
+          cached: true,
+          isDefault: true,
+          url: DEFAULT_URL,
+          urlHash,
+          downloadUrl: `${cdnBase}/download/${defaultStoreId}/OUTPUT.zip`,
+          directZipUrl: `${cdnBase}/download/${defaultStoreId}/OUTPUT.zip`,
+          outputName: DEFAULT_RESULT.outputName,
+          zipFile: 'OUTPUT.zip',
+          fileCount: DEFAULT_RESULT.fileCount,
+          totalSize: DEFAULT_RESULT.totalSize,
+          totalSizeFormatted: DEFAULT_RESULT.totalSizeFormatted,
+          zipSize: DEFAULT_RESULT.zipSize,
+          zipSizeFormatted: DEFAULT_RESULT.zipSizeFormatted,
+          compressionRatio: DEFAULT_RESULT.compressionRatio,
+          durationSeconds: 0.05,
+          timestamp: DEFAULT_RESULT.timestamp,
+          status: 'success'
+        });
+      }
+
+      // 2. NEW URL: Validate URL is present
+      const targetUrl = (rawUrl || '').trim();
       if (!targetUrl) {
         return jsonResponse({
           error: "Missing required 'url' parameter",
@@ -321,36 +399,7 @@ export default {
       }
 
       // Compute cryptographic SHA-256 hash of the normalized target URL
-      const normalized = normalizeUrl(targetUrl);
       const urlHash = await computeUrlHash(targetUrl);
-      const forceRefresh = body.forceRefresh === true || url.searchParams.get('forceRefresh') === 'true';
-
-      // 1. Check Pre-seeded Cache for Default URLs (saves compute completely)
-      if (!forceRefresh && PRESEEDED_CACHE[normalized]) {
-        const cachedItem = PRESEEDED_CACHE[normalized];
-        const storeId = cachedItem.storeId;
-        const zipFile = cachedItem.zipFile;
-
-        return jsonResponse({
-          success: true,
-          cached: true,
-          url: cachedItem.url,
-          urlHash,
-          downloadUrl: `${cdnBase}/download/${storeId}/${encodeURIComponent(zipFile)}`,
-          directZipUrl: `${cdnBase}/download/${storeId}/OUTPUT.zip`,
-          outputName: cachedItem.outputName,
-          zipFile,
-          fileCount: cachedItem.fileCount,
-          totalSize: cachedItem.totalSize,
-          totalSizeFormatted: cachedItem.totalSizeFormatted,
-          zipSize: cachedItem.zipSize,
-          zipSizeFormatted: cachedItem.zipSizeFormatted,
-          compressionRatio: cachedItem.compressionRatio,
-          durationSeconds: 0.05,
-          timestamp: cachedItem.timestamp,
-          status: 'success'
-        });
-      }
 
       // 2. Check Cloudflare Edge Cache API for previously scraped URLs
       const cache = caches.default;

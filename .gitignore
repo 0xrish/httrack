@@ -4,6 +4,8 @@ storage
 scraped_websites/
 .dev.vars
 node_modules/
+.wrangler/
+
 
 # The rest is copied from https://github.com/github/gitignore/blob/main/Python.gitignore
 
