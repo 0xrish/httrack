@@ -2,8 +2,17 @@ name = "mikolabs-scraper-worker"
 main = "src/index.js"
 compatibility_date = "2024-01-01"
 
+# Custom Domain binding for cdn.mikolabs.xyz
+routes = [
+  { pattern = "cdn.mikolabs.xyz/*", custom_domain = true }
+]
+
 [vars]
 ACTOR_ID = "mikolabs~web-extractor"
 CDN_URL = "https://cdn.mikolabs.xyz"
-# Put secrets like APIFY_TOKEN via: wrangler secret put APIFY_TOKEN
-# Or for local development, in .dev.vars
+
+# Sensitive secrets (APIFY_TOKEN, AUTH_BEARER_TOKEN, RAPIDAPI_PROXY_SECRET)
+# are managed via Cloudflare Secrets so they remain secure:
+#   npx wrangler secret put APIFY_TOKEN
+#   npx wrangler secret put AUTH_BEARER_TOKEN
+# For local dev, wrangler automatically reads from .dev.vars
