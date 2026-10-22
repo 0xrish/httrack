@@ -138,6 +138,8 @@ Authorization: Bearer <your_token>
 
 Downloads the archive directly from the CDN with automatic browser attachment headers.
 
+> **Note**: Download links are completely public and do **NOT** require any user authentication or headers. The Cloudflare Worker uses its internal `APIFY_TOKEN` behind the scenes to extract and stream the ZIP file to the user.
+
 **Example**:
 ```http
 GET https://cdn.mikolabs.xyz/download/JH0DNwc7Bgzy0AMOE/OUTPUT.zip

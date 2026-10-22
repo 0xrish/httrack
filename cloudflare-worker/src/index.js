@@ -42,8 +42,11 @@ export default {
       return new Response(null, { status: 204, headers: CORS_HEADERS });
     }
 
-    // Verify Bearer Authorization Header if configured
-    if (env.AUTH_BEARER_TOKEN && url.pathname !== '/health') {
+    // Auth is ONLY required when initiating scrapes (POST /scrape, POST /scrape-async)
+    // Download links (GET /download/:storeId/:key) and health checks do NOT require user auth.
+    // The worker internally uses its own APIFY_TOKEN to extract and stream the zip to the user.
+    const isScrapeAction = url.pathname === '/scrape' || url.pathname === '/scrape-async' || (url.pathname === '/' && method === 'POST');
+    if (env.AUTH_BEARER_TOKEN && isScrapeAction) {
       const authHeader = request.headers.get('Authorization') || '';
       const queryToken = url.searchParams.get('token');
       const expectedBearer = `Bearer ${env.AUTH_BEARER_TOKEN}`;
@@ -96,8 +99,8 @@ export default {
     // Path: /download/:storeId/:key (or /download/:storeId/OUTPUT.zip)
     const downloadMatch = url.pathname.match(/^\/download\/([a-zA-Z0-9_-]+)\/(.+)$/);
     if (downloadMatch && method === 'GET') {
-      const storeId = downloadMatch[1];
-      const recordKey = decodeURIComponent(downloadMatch[2]);
+      const storeId = downloadMatch[1].trim();
+      const recordKey = decodeURIComponent(downloadMatch[2]).trim().replace(/[\r\n\t]/g, '');
 
       const apifyRecordUrl = `https://api.apify.com/v2/key-value-stores/${storeId}/records/${encodeURIComponent(recordKey)}?token=${apifyToken}`;
 
@@ -152,13 +155,9 @@ export default {
 
         if (runStatus === 'SUCCEEDED') {
           const defaultDatasetId = runData.data.defaultDatasetId;
-          const storeId = runData.data.defaultKeyValueStoreId;
-
-          const datasetResp = await fetch(`https://api.apify.com/v2/datasets/${defaultDatasetId}/items?token=${apifyToken}`);
-          const items = datasetResp.ok ? await datasetResp.json() : [];
-          const item = items[0] || {};
-
-          const zipFile = item.zipFile || 'OUTPUT.zip';
+          const storeId = (runData.data.defaultKeyValueStoreId || '').trim();
+          const cleanZipFile = String(item.zipFile || 'OUTPUT.zip').trim().replace(/[\r\n\t]/g, '');
+          const zipFile = cleanZipFile || 'OUTPUT.zip';
           return jsonResponse({
             status: 'SUCCEEDED',
             url: item.url,
@@ -311,8 +310,9 @@ export default {
         }
 
         // Extract store ID from item links
-        const storeId = extractStoreId(item.zipUrl) || extractStoreId(item.keyValueStoreUrl) || extractStoreId(item.zipDirectUrl);
-        const zipFile = item.zipFile || 'OUTPUT.zip';
+        const storeId = (extractStoreId(item.zipUrl) || extractStoreId(item.keyValueStoreUrl) || extractStoreId(item.zipDirectUrl) || '').trim();
+        const cleanZipFile = String(item.zipFile || 'OUTPUT.zip').trim().replace(/[\r\n\t]/g, '');
+        const zipFile = cleanZipFile || 'OUTPUT.zip';
 
         // Generate clean CDN download URLs (tokens hidden from client)
         const downloadUrl = storeId
