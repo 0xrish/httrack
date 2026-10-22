@@ -6,9 +6,8 @@ FROM apify/actor-python:3.13
 # Switch to root to install system packages
 USER root
 
-# Install HTTrack and required system dependencies
-# Based on setup-wsl.sh and WSL_SETUP.md requirements
-RUN echo "=== Installing HTTrack and system dependencies ===" \
+# Install crawler engine and system dependencies
+RUN echo "=== Installing system dependencies ===" \
  && apt-get update \
  && apt-get install -y --no-install-recommends \
     httrack \
@@ -17,12 +16,10 @@ RUN echo "=== Installing HTTrack and system dependencies ===" \
     ca-certificates \
     zlib1g \
     libssl3 \
- && echo "=== Verifying HTTrack installation ===" \
- && httrack --version \
  && echo "=== Cleaning up apt cache ===" \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/* \
- && echo "=== HTTrack installation complete ==="
+ && echo "=== System dependencies installation complete ==="
 
 # Switch back to myuser for the rest of the build
 USER myuser

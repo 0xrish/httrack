@@ -1,0 +1,5 @@
+Mirror in progress since Thu, 22 Oct 2026 22:02:29 .. please wait!
+"C:\Program Files\WinHttrack\httrack.exe" https://bigbearslides.netlify.app -O F:\Mikolabs-Apify\httrack\scraped_websites\bigbearslides.netlify.app_20261022_220229 -r2 %e0 -a -D -c4 -T30 -R2 -s2 -F "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36" -%F  -I0 -q -Q -N0 -K0 -%P 
+To pause the engine: create an empty file named 'hts-stop.lock'
+PID=30008
+START=1792686749

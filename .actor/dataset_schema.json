@@ -2,6 +2,48 @@
   "actorSpecification": 1,
   "fields": {},
   "views": {
+    "files": {
+      "title": "Scraped Pages & Files",
+      "transformation": {
+        "fields": [
+          "url",
+          "filePath",
+          "contentType",
+          "fileSize",
+          "content",
+          "timestamp"
+        ]
+      },
+      "display": {
+        "component": "table",
+        "properties": {
+          "url": {
+            "label": "Page URL",
+            "format": "link"
+          },
+          "filePath": {
+            "label": "File Path",
+            "format": "text"
+          },
+          "contentType": {
+            "label": "Content Type",
+            "format": "text"
+          },
+          "fileSize": {
+            "label": "Size (bytes)",
+            "format": "number"
+          },
+          "content": {
+            "label": "Content",
+            "format": "text"
+          },
+          "timestamp": {
+            "label": "Scraped At",
+            "format": "date"
+          }
+        }
+      }
+    },
     "overview": {
       "title": "Scraping Results",
       "transformation": {

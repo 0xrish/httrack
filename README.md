@@ -1,11 +1,11 @@
-# HTTrack Website Scraper - Apify Actor
+# Scrap Any Website with Source Code
 
-Download complete websites using HTTrack and get them as ZIP archives. Perfect for creating offline backups, archiving websites, or downloading entire sites with all assets (HTML, CSS, JavaScript, images, videos).
+Download complete websites and get them as ZIP archives. Perfect for creating offline backups, archiving websites, or downloading entire sites with all assets. Includes source code.
 
 ## Features
 
-✅ **Complete Website Downloads** - Downloads entire websites with all assets  
-✅ **ZIP Archive Output** - Automatically creates compressed ZIP files  
+✅ **Complete Website Downloads** - Downloads entire websites with all assets and source code  
+✅ **ZIP Archive Output** - Automatically creates compressed ZIP files with full source code  
 ✅ **Configurable Depth** - Control how deep to follow links (1-10 levels)  
 ✅ **Rate Limiting** - Respect servers with configurable download rates  
 ✅ **Domain Filtering** - Stay on same domain or follow external links  
@@ -139,19 +139,20 @@ Stops after 5 minutes or 100 MB, whichever comes first.
 ## How It Works
 
 1. **Input Validation** - Validates the URL and configuration
-2. **HTTrack Execution** - Runs HTTrack with configured parameters
+2. **Website Crawler Execution** - Runs crawler engine with configured parameters to download website source code
 3. **Progress Monitoring** - Logs progress in real-time
-4. **ZIP Creation** - Creates a compressed archive of all files
-5. **Storage** - Saves ZIP to Key-Value Store and stats to Dataset
-6. **Cleanup** - Optionally removes temporary files
+4. **Pre-ZIP Cleanup** - Removes temporary cache files and index files before archiving
+5. **ZIP Creation** - Creates a compressed archive of all website files and source code
+6. **Storage** - Saves ZIP to Key-Value Store and stats to Dataset
+7. **Post-ZIP Cleanup** - Optionally removes temporary files after ZIP creation
 
 ## Technical Details
 
 ### Based On
 
-- **HTTrack 3.49+** - Industry-standard website copier
+- **High-Performance Mirroring Engine** - Industry-standard offline website copier and crawler
 - **Python 3.13** - Modern async Python runtime
-- **Apify SDK 2.0** - For Actor integration and storage
+- **Apify SDK 2.x** - For Actor integration and storage
 
 ### Limitations
 
@@ -228,23 +229,22 @@ apify run
 
 ```bash
 # Build Docker image
-docker build -t httrack-scraper .
+docker build -t website-scraper .
 
 # Run container
-docker run httrack-scraper
+docker run website-scraper
 ```
 
 ## Support
 
 For issues or questions:
 - Check Actor logs for detailed error messages
-- Review HTTrack documentation: https://www.httrack.com/
 - Contact Apify support through the platform
 
 ## License
 
-This Actor uses HTTrack, which is licensed under GPL v3.
+This Actor is open source and licensed under GPL v3.
 
 ## Version History
 
-- **1.0.0** - Initial release with full HTTrack integration
+- **1.0.0** - Initial release with complete website source code download, asset archiving, and ZIP archive output

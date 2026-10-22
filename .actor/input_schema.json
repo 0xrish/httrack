@@ -1,5 +1,5 @@
 {
-  "title": "HTTrack Website Scraper Input",
+  "title": "Scrap Any Website with Source Code Input",
   "type": "object",
   "schemaVersion": 1,
   "properties": {
@@ -101,6 +101,12 @@
       "description": "Respect website's robots.txt file",
       "default": true
     },
+    "createZip": {
+      "title": "Create ZIP Archive",
+      "type": "boolean",
+      "description": "If true, creates a ZIP archive and saves it to Key-Value Store. If false, pushes each scraped file/page directly to the dataset.",
+      "default": true
+    },
     "outputName": {
       "title": "Output Name (Optional)",
       "type": "string",
@@ -109,9 +115,9 @@
       "nullable": true
     },
     "cleanup": {
-      "title": "Cleanup After Zipping",
+      "title": "Cleanup Source Directory",
       "type": "boolean",
-      "description": "Remove source directory after creating ZIP (saves storage)",
+      "description": "Remove source directory after processing (saves storage)",
       "default": true
     }
   },

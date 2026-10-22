@@ -1,5 +1,5 @@
 """
-HTTrack Website Scraper Actor
+Website Scraper Actor
 Main entry point for the Apify Actor
 """
 

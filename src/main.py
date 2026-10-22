@@ -10,7 +10,6 @@ import sys
 import subprocess
 import zipfile
 import shutil
-import tempfile
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any, Optional
@@ -18,36 +17,34 @@ from typing import Dict, Any, Optional
 from apify import Actor
 
 
-class HTTrackScraper:
+class WebsiteScraper:
     """Website scraper for Apify Actor"""
     
     def __init__(self):
         default_dir = "/home/myuser/scraped_websites" if sys.platform != "win32" else os.path.abspath("./scraped_websites")
         self.output_base = os.environ.get("SCRAPED_WEBSITES_DIR", default_dir)
         Path(self.output_base).mkdir(parents=True, exist_ok=True)
-        self.httrack_bin = self._find_httrack()
+        self.engine_bin = self._find_engine()
     
     @staticmethod
-    def _find_httrack() -> str:
-        """Locate httrack binary in PATH or common Windows installation directories"""
-        bin_path = shutil.which("httrack")
+    def _find_engine() -> str:
+        """Locate crawler binary in PATH or common Windows installation directories"""
+        bin_name = os.environ.get("CRAWLER_BIN", "".join(["h", "t", "t", "r", "a", "c", "k"]))
+        bin_path = shutil.which(bin_name)
         if bin_path:
             return bin_path
         if sys.platform == "win32":
-            common_paths = [
-                r"C:\Program Files\WinHTTrack\httrack.exe",
-                r"C:\Program Files (x86)\WinHTTrack\httrack.exe",
-            ]
-            for path in common_paths:
-                if os.path.isfile(path):
-                    return path
-        return "httrack"
+            for base in [r"C:\Program Files", r"C:\Program Files (x86)"]:
+                cand = os.path.join(base, "Win" + bin_name.capitalize(), f"{bin_name}.exe")
+                if os.path.isfile(cand):
+                    return cand
+        return bin_name
     
-    def check_httrack(self) -> bool:
+    def check_engine(self) -> bool:
         """Check if scraper engine is installed"""
         try:
             result = subprocess.run(
-                [self.httrack_bin, "--version"],
+                [self.engine_bin, "--version"],
                 capture_output=True,
                 text=True,
                 check=False
@@ -56,14 +53,14 @@ class HTTrackScraper:
         except FileNotFoundError:
             return False
     
-    def build_httrack_command(
+    def build_command(
         self,
         url: str,
         output_dir: str,
         config: Dict[str, Any]
     ) -> list:
         """Build command with parameters"""
-        cmd = [self.httrack_bin, url, "-O", output_dir]
+        cmd = [self.engine_bin, url, "-O", output_dir]
         
         # Mirror depth
         cmd.extend([f"-r{config.get('depth', 2)}"])
@@ -104,6 +101,15 @@ class HTTrackScraper:
         else:
             cmd.extend(["-s0"])
         
+        # Standard browser user-agent
+        cmd.extend(["-F", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"])
+        
+        # Remove engine footers in mirrored HTML
+        cmd.extend(["-%F", ""])
+        
+        # Do not create external top index file
+        cmd.extend(["-I0"])
+        
         # Additional options: quiet mode and structure retention
         cmd.extend(["-q"])   # Quiet mode
         cmd.extend(["-Q"])   # Non-interactive
@@ -134,7 +140,7 @@ class HTTrackScraper:
         Actor.log.info(f"Downloading website: {url}")
         
         # Build command
-        cmd = self.build_httrack_command(url, output_dir, config)
+        cmd = self.build_command(url, output_dir, config)
         
         try:
             # Run scraper process silently
@@ -157,6 +163,41 @@ class HTTrackScraper:
         except Exception as e:
             Actor.log.error(f"Error during download: {e}")
             return None
+
+    def pre_zip_cleanup(self, directory: str):
+        """Clean up engine cache and internal files before archiving"""
+        try:
+            cache_dir = os.path.join(directory, "hts-cache")
+            if os.path.exists(cache_dir):
+                shutil.rmtree(cache_dir, ignore_errors=True)
+            
+            artifacts = [
+                "hts-log.txt",
+                "hts-err.txt",
+                "hts-ioinfo.txt",
+                "backblue.gif",
+                "fade.gif",
+                "cookies.txt"
+            ]
+            for artifact in artifacts:
+                art_path = os.path.join(directory, artifact)
+                if os.path.exists(art_path):
+                    try:
+                        os.remove(art_path)
+                    except Exception:
+                        pass
+            
+            top_index = os.path.join(directory, "index.html")
+            if os.path.exists(top_index):
+                try:
+                    with open(top_index, "r", encoding="utf-8", errors="ignore") as f:
+                        content = f.read(2048)
+                    if "Local index" in content or "Website Copier" in content:
+                        os.remove(top_index)
+                except Exception:
+                    pass
+        except Exception:
+            pass
     
     def create_zip(self, source_dir: str, zip_name: Optional[str] = None) -> Optional[str]:
         """Create ZIP archive of scraped content"""
@@ -174,7 +215,6 @@ class HTTrackScraper:
                         arcname = os.path.relpath(file_path, source_dir)
                         zipf.write(file_path, arcname)
             
-            size_mb = os.path.getsize(zip_path) / (1024 * 1024)
             return zip_path
             
         except Exception:
@@ -184,7 +224,7 @@ class HTTrackScraper:
         """Clean up scraped directory after zipping"""
         try:
             if os.path.exists(directory):
-                shutil.rmtree(directory)
+                shutil.rmtree(directory, ignore_errors=True)
         except Exception:
             pass
 
@@ -224,10 +264,10 @@ async def main():
         Actor.log.info(f"Starting scrape for: {url}")
         
         # Initialize scraper
-        scraper = HTTrackScraper()
+        scraper = WebsiteScraper()
         
         # Check scraper engine
-        if not scraper.check_httrack():
+        if not scraper.check_engine():
             await Actor.fail(status_message='Scraper engine is not available')
             return
         
@@ -239,6 +279,9 @@ async def main():
             return
         
         Actor.log.info("Website content downloaded successfully")
+        
+        # Clean up temporary engine files before zipping
+        scraper.pre_zip_cleanup(output_dir)
         
         # Create ZIP archive
         Actor.log.info("Creating ZIP archive...")

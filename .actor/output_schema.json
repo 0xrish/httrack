@@ -1,6 +1,6 @@
 {
   "actorOutputSchemaVersion": 1,
-  "title": "HTTrack Website Scraper Output",
+  "title": "Scrap Any Website with Source Code Output",
   "properties": {
     "zipFile": {
       "type": "string",
